@@ -75,7 +75,7 @@ const ConcatExtendedQuestion = async () => {
       // for (let i = 0; i < jieba.length - 1; i++) {
       //   if (jieba[i].tag == "N\r" && jieba[i + 1].tag == "N\r") {
       //     outputN.push(jieba[i].word + jieba[i + 1].word);
-      //     fs.writeFile("./NList.json", JSON.stringify(outputN), err => {
+      //     fs.writeFile("./file/ConcatExtendedQuestion/NList.json", JSON.stringify(outputN), err => {
       //       if (err) console.log(err);
       //     });
       //   }
@@ -85,7 +85,7 @@ const ConcatExtendedQuestion = async () => {
       // for (let i = 0; i < jieba.length - 1; i++) {
       //   if (jieba[i].tag == "Vi\r" && jieba[i + 1].tag == "Vi\r" || jieba[i].tag == "Vt\r" && jieba[i + 1].tag == "Vt\r") {
       //     outputV.push(jieba[i].word + jieba[i + 1].word);
-      //     fs.writeFile("./VList.json", JSON.stringify(outputV), err => {
+      //     fs.writeFile("./file/ConcatExtendedQuestion/VList.json", JSON.stringify(outputV), err => {
       //       if (err) console.log(err);
       //     });
       //   }

@@ -4,6 +4,7 @@ import nodejieba from "nodejieba";
 import fs from "fs";
 import JFile from "jfile";
 import xlsx from "node-xlsx";
+import xl from "excel4node";
 
 import StateMachine from "fsm-as-promised";
 
@@ -61,8 +62,6 @@ const ConcatExtendedQuestion = async () => {
   //   })
   // });
 
-  const NList = [];
-  const VList = [];
   const outputN = [];
   const outputV = [];
   await fs.readFile("./file/ExtendedQuestion.json", "utf-8", (err, data) => {
@@ -70,21 +69,29 @@ const ConcatExtendedQuestion = async () => {
     const List = JSON.parse(data);
     List.map((value, index) => {
       const jieba = nodejieba.tag(value);
-
       // // N
-      // for (let i = 0; i < jieba.length - 2; i++) {
-      //   if (jieba[i].tag == "n" && jieba[i + 1].tag == "n" && jieba[i + 2].tag == "n") {
-      //     outputN.push(jieba[i].word + jieba[i + 1].word + jieba[i + 2].word);
+      // for (let i = 0; i < jieba.length - 1; i++) {
+      //   if (jieba[i].tag == "n" && jieba[i + 1].tag == "n") {
+      //     outputN.push({
+      //       Question: value,
+      //       Value: jieba[i].word + jieba[i + 1].word
+      //     });
+
       //     fs.writeFile("./file/ConcatExtendedQuestion/NList.json", JSON.stringify(outputN), err => {
       //       if (err) console.log(err);
       //     });
+
       //   }
       // }
 
-      // // V
-      // for (let i = 0; i < jieba.length - 2; i++) {
-      //   if (jieba[i].tag == "v" && jieba[i + 1].tag == "v" && jieba[i + 2].tag == "v") {
-      //     outputV.push(jieba[i].word + jieba[i + 1].word + jieba[i + 2].word);
+      //V
+      // for (let i = 0; i < jieba.length - 1; i++) {
+      //   if (jieba[i].tag == "v" && jieba[i + 1].tag == "v") {
+      //     outputV.push({
+      //       Question: value,
+      //       Value: jieba[i].word + jieba[i + 1].word
+      //     });
+
       //     fs.writeFile("./file/ConcatExtendedQuestion/VList.json", JSON.stringify(outputV), err => {
       //       if (err) console.log(err);
       //     });
@@ -92,17 +99,22 @@ const ConcatExtendedQuestion = async () => {
       // }
     });
 
-    fs.readFile("./file/ConcatExtendedQuestion/VList.json", "utf-8", (err, data) => {
-      const NList = JSON.parse(data);
-      const DataNList = [...new Set(NList)];
+    // fs.readFile("./file/ConcatExtendedQuestion/VList.json", "utf-8", (err, data) => {
+    //   const List = JSON.parse(data);
 
-      DataNList.map((value, index) => {
-        fs.appendFile("./file/ConcatExtendedQuestion/VList.txt", value + "\n", err => {
-          if (err) console.log(err);
-        });
-      });
-    });
+    //   const output = List.filter((item, index, self) =>
+    //     index === self.findIndex((t) => (
+    //       t.Value === item.Value
+    //     ))
+    //   );
+    //   console.log(output)
+    //   output.map((value, index) => {
+    //     fs.appendFile("./file/ConcatExtendedQuestion/VList.txt", value.Value + '  =>  ' + value.Question + "\n", err => {
+    //       if (err) console.log(err);
+    //     });
+    //   })
+    // });
   });
 };
 
-ConcatExtendedQuestion();
+//ConcatExtendedQuestion();

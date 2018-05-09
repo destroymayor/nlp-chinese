@@ -14,7 +14,7 @@ import {
 
 // 載入字典
 nodejieba.load({
-  userDict: "./jieba/Jieba_TW.utf8"
+  userDict: "./jieba/dict.txt"
 });
 
 const CreateFsmData = async () => {
@@ -71,38 +71,37 @@ const ConcatExtendedQuestion = async () => {
     List.map((value, index) => {
       const jieba = nodejieba.tag(value);
 
-      // N
-      // for (let i = 0; i < jieba.length - 1; i++) {
-      //   if (jieba[i].tag == "N\r" && jieba[i + 1].tag == "N\r") {
-      //     outputN.push(jieba[i].word + jieba[i + 1].word);
+      // // N
+      // for (let i = 0; i < jieba.length - 2; i++) {
+      //   if (jieba[i].tag == "n" && jieba[i + 1].tag == "n" && jieba[i + 2].tag == "n") {
+      //     outputN.push(jieba[i].word + jieba[i + 1].word + jieba[i + 2].word);
       //     fs.writeFile("./file/ConcatExtendedQuestion/NList.json", JSON.stringify(outputN), err => {
       //       if (err) console.log(err);
       //     });
       //   }
       // }
 
-      // V
-      // for (let i = 0; i < jieba.length - 1; i++) {
-      //   if (jieba[i].tag == "Vi\r" && jieba[i + 1].tag == "Vi\r" || jieba[i].tag == "Vt\r" && jieba[i + 1].tag == "Vt\r") {
-      //     outputV.push(jieba[i].word + jieba[i + 1].word);
+      // // V
+      // for (let i = 0; i < jieba.length - 2; i++) {
+      //   if (jieba[i].tag == "v" && jieba[i + 1].tag == "v" && jieba[i + 2].tag == "v") {
+      //     outputV.push(jieba[i].word + jieba[i + 1].word + jieba[i + 2].word);
       //     fs.writeFile("./file/ConcatExtendedQuestion/VList.json", JSON.stringify(outputV), err => {
       //       if (err) console.log(err);
       //     });
       //   }
       // }
-
     });
 
-    // fs.readFile('./VList.json', 'utf-8', (err, data) => {
-    //   const NList = JSON.parse(data);
-    //   const DataNList = [...(new Set(NList))];
-    //   DataNList.map((value, index) => {
-    //     fs.appendFile("./VList.txt", value + '\n', err => {
-    //       if (err) console.log(err);
-    //     });
-    //   })
-    // });
+    fs.readFile("./file/ConcatExtendedQuestion/VList.json", "utf-8", (err, data) => {
+      const NList = JSON.parse(data);
+      const DataNList = [...new Set(NList)];
 
+      DataNList.map((value, index) => {
+        fs.appendFile("./file/ConcatExtendedQuestion/VList.txt", value + "\n", err => {
+          if (err) console.log(err);
+        });
+      });
+    });
   });
 };
 

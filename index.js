@@ -2,20 +2,24 @@ import nodejieba from "nodejieba";
 
 // file process
 import fs from "fs";
-import JFile from "jfile";
-import xlsx from "node-xlsx";
-import xl from "excel4node";
+
+import nodelcs from "node-lcs";
+import lcs from "longest-common-subsequence";
+import levenshtein from "fast-levenshtein";
+
+//繁轉簡
+import { tify, sify } from "chinese-conv";
 
 import StateMachine from "fsm-as-promised";
 
-import {
-  similarity,
-  getMeanAndVar
-} from "./src/Calculation";
+//同義詞
+import synonyms from "node-synonyms";
+
+import { similarity, getMeanAndVar } from "./src/Calculation";
 
 // 載入字典
 nodejieba.load({
-  userDict: "./jieba/dict.txt"
+  dict: "./jieba/dict.txt"
 });
 
 const CreateFsmData = async () => {
@@ -69,22 +73,18 @@ const ConcatExtendedQuestion = async () => {
     const List = JSON.parse(data);
     List.map((value, index) => {
       const jieba = nodejieba.tag(value);
-      // // N
+      // N
       // for (let i = 0; i < jieba.length - 1; i++) {
       //   if (jieba[i].tag == "n" && jieba[i + 1].tag == "n") {
-      //     outputN.push({
-      //       Question: value,
-      //       Value: jieba[i].word + jieba[i + 1].word
-      //     });
+      //     outputN.push(jieba[i].word + jieba[i + 1].word);
 
       //     fs.writeFile("./file/ConcatExtendedQuestion/NList.json", JSON.stringify(outputN), err => {
       //       if (err) console.log(err);
       //     });
-
       //   }
       // }
 
-      //V
+      // //V
       // for (let i = 0; i < jieba.length - 1; i++) {
       //   if (jieba[i].tag == "v" && jieba[i + 1].tag == "v") {
       //     outputV.push({
@@ -99,22 +99,75 @@ const ConcatExtendedQuestion = async () => {
       // }
     });
 
-    // fs.readFile("./file/ConcatExtendedQuestion/VList.json", "utf-8", (err, data) => {
+    // fs.readFile("./file/ConcatExtendedQuestion/NList.json", "utf-8", (err, data) => {
     //   const List = JSON.parse(data);
-
-    //   const output = List.filter((item, index, self) =>
-    //     index === self.findIndex((t) => (
-    //       t.Value === item.Value
-    //     ))
-    //   );
-    //   console.log(output)
+    //   const output = List.filter((item, index, self) => index === self.findIndex(t => t === item));
+    //   console.log(output);
     //   output.map((value, index) => {
-    //     fs.appendFile("./file/ConcatExtendedQuestion/VList.txt", value.Value + '  =>  ' + value.Question + "\n", err => {
+    //     fs.appendFile("./file/ConcatExtendedQuestion/NList.txt", value + "  =>  " + value + "\n", err => {
     //       if (err) console.log(err);
     //     });
-    //   })
+    //   });
     // });
   });
 };
 
+const SpokenWords = async () => {
+  fs.readFile("./file/QA.json", "utf-8", (err, data) => {
+    if (err) throw err;
+
+    const List = JSON.parse(data);
+
+    console.log(Object.keys(List)[7]);
+    const l = List[Object.keys(List)[7]];
+    const levenshteinList = [];
+
+    // levenshtein 取推導長度小於10的問句
+    for (let i = 0; i < l.length - 1; i++) {
+      if (levenshtein.get(l[i], l[i + 1]) <= 10) {
+        levenshteinList.push(l[i]);
+      }
+    }
+
+    const nounList = [];
+    // 將levenshtein 推導長度小於10的問句分詞性，取名詞
+    levenshteinList.map(item => {
+      nodejieba.tag(item).map((value, index) => {
+        if (value.tag === "n" && value.word.length > 1) {
+          nounList.push(value.word);
+        }
+      });
+    });
+
+    // levenshtein推導長度小於10問句裡的名詞取代掉
+    levenshteinList.map(value => {
+      console.log(value);
+      console.log(value.replace(new RegExp([...new Set(nounList)].join("|"), "g"), "【】"));
+      console.log("----------");
+    });
+  });
+};
+
+const SynonymsDict = async text => {
+  const list = [];
+  synonyms.nearby(sify(text)).then(result => {
+    const synonyms = result[1].map(item => item);
+    const word = result[0].map((item, index) => {
+      list.push({ word: tify(item), synonym: synonyms[index] });
+    });
+    console.log(list);
+    console.log("============================");
+  });
+};
+
 //ConcatExtendedQuestion();
+//SpokenWords();
+
+// nodejieba.cut("我在官網意見反映哪時會回覆").map(value => {
+//   console.log(SynonymsDict(value));
+// });
+
+console.log(nodejieba.cut("你們服務人員態度很差我很不滿意"));
+synonyms.seg(tify("你們服務人員態度很差我很不滿意"), false, false).then(words => {
+  console.log(words);
+});

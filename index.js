@@ -9,9 +9,7 @@ import levenshtein from "fast-levenshtein";
 
 //繁轉簡
 import { tify, sify } from "chinese-conv";
-
 import StateMachine from "fsm-as-promised";
-
 //同義詞
 import synonyms from "node-synonyms";
 
@@ -160,14 +158,8 @@ const SynonymsDict = async text => {
   });
 };
 
-//ConcatExtendedQuestion();
-//SpokenWords();
-
-// nodejieba.cut("我在官網意見反映哪時會回覆").map(value => {
-//   console.log(SynonymsDict(value));
-// });
-
-console.log(nodejieba.cut("你們服務人員態度很差我很不滿意"));
-synonyms.seg(tify("你們服務人員態度很差我很不滿意"), false, false).then(words => {
-  console.log(words);
+synonyms.seg("你們服務人員態度很差我很不滿意", false, false).then(words => {
+  words.map(value => {
+    console.log(SynonymsDict(value));
+  });
 });

@@ -2,18 +2,22 @@ import nodejieba from "nodejieba";
 
 // file process
 import fs from "fs";
+import rl from "readline-specific";
 
+// 距離計算
 import nodelcs from "node-lcs";
 import lcs from "longest-common-subsequence";
 import levenshtein from "fast-levenshtein";
 
 //繁轉簡
-import { tify, sify } from "chinese-conv";
+import {
+  tify,
+  sify
+} from "chinese-conv";
+
 import StateMachine from "fsm-as-promised";
 //同義詞
 import synonyms from "node-synonyms";
-
-import { similarity, getMeanAndVar } from "./src/Calculation";
 
 // 載入字典
 nodejieba.load({
@@ -146,20 +150,39 @@ const SpokenWords = async () => {
   });
 };
 
+const ReadLine = async () => {
+  const lineReader = require('readline').createInterface({
+    input: fs.createReadStream('./dict1.txt')
+  });
+
+  lineReader.on('line', function (line) {
+    if (line.split(' ')[0].length > 1) {
+      fs.appendFile('./dict2.txt', line + '\n', (err) => {
+        if (err) throw err;
+      })
+    }
+  });
+}
+
 const SynonymsDict = async text => {
   const list = [];
   synonyms.nearby(sify(text)).then(result => {
     const synonyms = result[1].map(item => item);
     const word = result[0].map((item, index) => {
-      list.push({ word: tify(item), synonym: synonyms[index] });
+      list.push({
+        word: tify(item),
+        synonym: synonyms[index]
+      });
     });
     console.log(list);
     console.log("============================");
   });
 };
 
-synonyms.seg("你們服務人員態度很差我很不滿意", false, false).then(words => {
-  words.map(value => {
-    console.log(SynonymsDict(value));
-  });
-});
+// set(1,2,3)
+//2 = 是否保留停用詞, 3 = 是否保留標點符號
+// synonyms.seg("請問可否幫助把小米的貨送到營業所我再去拿", false, false).then(words => {
+//   words.map(value => {
+//     console.log(SynonymsDict(value));
+//   });
+// });

@@ -181,8 +181,8 @@ const SynonymsDict = async text => {
 
 // set(1,2,3)
 //2 = 是否保留停用詞, 3 = 是否保留標點符號
-// synonyms.seg("請問可否幫助把小米的貨送到營業所我再去拿", false, false).then(words => {
-//   words.map(value => {
-//     console.log(SynonymsDict(value));
-//   });
-// });
+synonyms.seg("請問可否幫助把小米的貨送到營業所我再去拿", false, false).then(words => {
+  words.map(value => {
+    console.log(SynonymsDict(value));
+  });
+});

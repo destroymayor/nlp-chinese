@@ -40,6 +40,6 @@
     "babel-plugin-transform-strict-mode": "^6.24.1",
     "babel-watch": "^2.0.7",
     "javascript-state-machine": "^3.0.1",
-    "nodemon": "^1.17.4"
+    "nodemon": "^1.17.5"
   }
 }

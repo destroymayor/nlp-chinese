@@ -10,10 +10,7 @@ import lcs from "longest-common-subsequence";
 import levenshtein from "fast-levenshtein";
 
 //繁轉簡
-import {
-  tify,
-  sify
-} from "chinese-conv";
+import { tify, sify } from "chinese-conv";
 
 import StateMachine from "fsm-as-promised";
 //同義詞
@@ -151,18 +148,18 @@ const SpokenWords = async () => {
 };
 
 const ReadLine = async () => {
-  const lineReader = require('readline').createInterface({
-    input: fs.createReadStream('./dict1.txt')
+  const lineReader = require("readline").createInterface({
+    input: fs.createReadStream("./dict1.txt")
   });
 
-  lineReader.on('line', function (line) {
-    if (line.split(' ')[0].length > 1) {
-      fs.appendFile('./dict2.txt', line + '\n', (err) => {
+  lineReader.on("line", function(line) {
+    if (line.split(" ")[0].length > 1) {
+      fs.appendFile("./dict2.txt", line + "\n", err => {
         if (err) throw err;
-      })
+      });
     }
   });
-}
+};
 
 const SynonymsDict = async text => {
   const list = [];
@@ -174,6 +171,7 @@ const SynonymsDict = async text => {
         synonym: synonyms[index]
       });
     });
+    console.log("同義詞");
     console.log(list);
     console.log("============================");
   });
@@ -181,8 +179,46 @@ const SynonymsDict = async text => {
 
 // set(1,2,3)
 //2 = 是否保留停用詞, 3 = 是否保留標點符號
-synonyms.seg("請問可否幫助把小米的貨送到營業所我再去拿", false, false).then(words => {
-  words.map(value => {
-    console.log(SynonymsDict(value));
+// synonyms.seg("包裹配送上有問題要怎麼跟你們司機聯絡", false, false).then(words => {
+//   console.log("斷詞結果", words);
+//   words.map(value => {
+//     console.log(SynonymsDict(value));
+//   });
+// });
+
+const StatisticsMenuVerbsAndNouns = async () => {
+  fs.readFile("./file/SAMSUNG_Manual_Clean.txt", "utf-8", (err, data) => {
+    if (err) throw err;
+    const list = [];
+    const resultV = [];
+    const resultN = [];
+    synonyms.seg(data, false, false).then(words => {
+      words.map(item => {
+        if (item.length > 1) {
+          list.push(item);
+        }
+      });
+      list.map(value => {
+        nodejieba.tag(value).map(val => {
+          if (val.tag == "n") {
+            resultN.push(val.word);
+          }
+          if (val.tag == "v") {
+            resultV.push(val.word);
+          }
+        });
+      });
+
+      const result = {};
+      for (var i = 0; i < resultV.length; ++i) {
+        if (!result[resultV[i]]) result[resultV[i]] = 0;
+        ++result[resultV[i]];
+      }
+      // fs.writeFile("./file/resultV.json", JSON.stringify([result]), err => {
+      //   if (err) throw err;
+      // });
+    });
   });
-});
+};
+
+SecurityPolicyViolationEvent();

@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tensorflow/tfjs": "^0.11.2",
     "chinese-conv": "^1.0.1",
     "common-substrings": "^1.0.2",
     "fast-levenshtein": "^2.0.6",

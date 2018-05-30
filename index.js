@@ -12,9 +12,12 @@ import levenshtein from "fast-levenshtein";
 //繁轉簡
 import { tify, sify } from "chinese-conv";
 
-import StateMachine from "fsm-as-promised";
+import { replaceBulk, removeDuplicates } from "./src/arrayProcess";
+
+//import StateMachine from "fsm-as-promised";
+
 //同義詞
-import synonyms from "node-synonyms";
+//import synonyms from "node-synonyms";
 
 // 載入字典
 nodejieba.load({
@@ -147,20 +150,6 @@ const SpokenWords = async () => {
   });
 };
 
-const ReadLine = async () => {
-  const lineReader = require("readline").createInterface({
-    input: fs.createReadStream("./dict1.txt")
-  });
-
-  lineReader.on("line", function(line) {
-    if (line.split(" ")[0].length > 1) {
-      fs.appendFile("./dict2.txt", line + "\n", err => {
-        if (err) throw err;
-      });
-    }
-  });
-};
-
 const SynonymsDict = async text => {
   const list = [];
   synonyms.nearby(sify(text)).then(result => {
@@ -177,48 +166,175 @@ const SynonymsDict = async text => {
   });
 };
 
-// set(1,2,3)
-//2 = 是否保留停用詞, 3 = 是否保留標點符號
-// synonyms.seg("包裹配送上有問題要怎麼跟你們司機聯絡", false, false).then(words => {
-//   console.log("斷詞結果", words);
-//   words.map(value => {
-//     console.log(SynonymsDict(value));
-//   });
-// });
-
+//統計名詞動詞出現次數
 const StatisticsMenuVerbsAndNouns = async () => {
-  fs.readFile("./file/SAMSUNG_Manual_Clean.txt", "utf-8", (err, data) => {
+  fs.readFile("./file/QAList.json", "utf-8", (err, data) => {
     if (err) throw err;
-    const list = [];
+    const DataList = JSON.parse(data);
+
     const resultV = [];
     const resultN = [];
-    synonyms.seg(data, false, false).then(words => {
-      words.map(item => {
-        if (item.length > 1) {
-          list.push(item);
+    DataList.map(item => {
+      synonyms.tag(sify(item)).map(value => {
+        if (value.tag == "v") {
+          resultV.push(tify(value.word));
         }
       });
-      list.map(value => {
-        nodejieba.tag(value).map(val => {
-          if (val.tag == "n") {
-            resultN.push(val.word);
-          }
-          if (val.tag == "v") {
-            resultV.push(val.word);
-          }
-        });
-      });
+    });
 
-      const result = {};
-      for (var i = 0; i < resultV.length; ++i) {
-        if (!result[resultV[i]]) result[resultV[i]] = 0;
-        ++result[resultV[i]];
-      }
-      // fs.writeFile("./file/resultV.json", JSON.stringify([result]), err => {
-      //   if (err) throw err;
-      // });
+    const result = {};
+    for (let i = 0; i < resultV.length; ++i) {
+      if (!result[resultV[i]]) result[resultV[i]] = 0;
+      ++result[resultV[i]];
+    }
+
+    const res = Object.entries(result);
+    let sorted = res.sort((a, b) => b[1] - a[1]);
+
+    fs.writeFile("./file/resultV.json", JSON.stringify(sorted), err => {
+      if (err) throw err;
     });
   });
 };
 
-SecurityPolicyViolationEvent();
+//統計名詞動詞出現次數
+const SamsungStatisticsMenuVerbsAndNouns = async () => {
+  fs.readFile("./file/SAMSUNG_Manual_Clean.txt", "utf-8", (err, data) => {
+    if (err) throw err;
+
+    const resultV = [];
+    const resultN = [];
+    synonyms.tag(sify(data)).map(value => {
+      if (value.tag == "n") {
+        resultN.push(tify(value.word));
+      }
+    });
+
+    const result = {};
+    for (var i = 0; i < resultN.length; ++i) {
+      if (!result[resultN[i]]) result[resultN[i]] = 0;
+      ++result[resultN[i]];
+    }
+    const res = Object.entries(result);
+    let sorted = res.sort((a, b) => b[1] - a[1]);
+
+    fs.writeFile("./file/SAMSUNG_key_N.json", JSON.stringify(sorted), err => {
+      if (err) throw err;
+    });
+  });
+};
+
+const IncludesToKey = async () => {
+  const DataListN = [];
+  const DataListV = [];
+  // fs.readFile("./file/blackCat_key_N.json", "utf-8", (err, Ndata) => {
+  //   const Nlist = JSON.parse(Ndata);
+  //   fs.readFile("./file/blackCat_key_V.json", "utf-8", (error, Vdata) => {
+  //     const Vlist = JSON.parse(Vdata);
+
+  //     //名詞
+  //     [].concat(...Nlist).map((item, index) => {
+  //       if (typeof item === "string") {
+  //         if (index <= 100) {
+  //           DataListN.push(item);
+  //         }
+  //       }
+  //     });
+
+  //     //動詞
+  //     [].concat(...Vlist).map((item, index) => {
+  //       if (typeof item === "string") {
+  //         if (index <= 100) {
+  //           DataListV.push(item);
+  //         }
+  //       }
+  //     });
+
+  //     const keyList = [];
+  //     for (let i = 0; i < 10; i++) {
+  //       for (let j = 0; j < 10 - 1; j++) {
+  //         keyList.push({ key1: DataListN[i], key2: DataListV[j + 1] });
+  //       }
+  //     }
+  //     fs.writeFile("./file/B_keyTwo_NandV.json", JSON.stringify(keyList));
+  //   });
+  // });
+
+  ////////////////
+
+  // const total = [];
+  // const lineReader = require("readline").createInterface({
+  //   input: fs.createReadStream("./file/SAMSUNG_Manual_Clean.txt")
+  // });
+
+  // fs.readFile("./file/B_keyTwo_NandV.json", "utf-8", (err, keyData) => {
+  //   const list = JSON.parse(keyData);
+  //   list.map((value, index, array) => {
+  //     const arr = array.map(item => item);
+  //     console.log(arr[index].key1, arr[index].key2);
+  //     lineReader.on("line", line => {
+  //       if (line.includes(arr[index].key1) && line.includes(arr[index].key2)) {
+  //         total.push({ key1: arr[index].key1, key2: arr[index].key2, content: line });
+  //         fs.writeFile("./file/totalTwo_NandV.json", JSON.stringify(total), err => {
+  //           if (err) throw err;
+  //         });
+  //       }
+  //     });
+  //   });
+  // });
+
+  //////過濾
+  fs.readFile("./file/totalTwo_NandV.json", "utf-8", (err, data) => {
+    const list = JSON.parse(data);
+
+    fs.writeFile("./file/totalTwo_NandV.json", JSON.stringify(removeDuplicates(list, "content")), err => {
+      if (err) throw err;
+    });
+  });
+};
+
+fs.readFile("./file/B_keyTwo_NandV.json", "utf-8", (errors, BKeyData) => {
+  const BKeyDataList = JSON.parse(BKeyData);
+
+  fs.readFile("./file/totalTwo_NandV.json", "utf-8", (err, data) => {
+    const list = JSON.parse(data);
+    fs.readFile("./file/S_keyTwo_NandV.json", "utf-8", (error, KeyData) => {
+      const i = 0;
+      const j = 0;
+      const SKeyDataList = JSON.parse(KeyData);
+      const SKeyword1 = SKeyDataList[i].key1;
+      const SKeyword2 = SKeyDataList[j].key2;
+      const BKeyword1 = BKeyDataList[i].key1;
+      const BKeyword2 = BKeyDataList[j].key2;
+
+      list.map(value => {
+        if (value.content.match(new RegExp(".*" + SKeyword1 + ".*" + SKeyword2))) {
+          console.log(
+            SKeyword1,
+            SKeyword2,
+            replaceBulk(value.content, [SKeyword1, SKeyword2], ["【" + BKeyword1 + "】", "【" + BKeyword2 + "】"]) + "\n"
+          );
+          fs.appendFile(
+            "./file/Samsung_change_NandV1.txt",
+            "Samsung N=" +
+              SKeyword1 +
+              ", V=" +
+              SKeyword2 +
+              " | black N=" +
+              BKeyword1 +
+              ", V=" +
+              BKeyword2 +
+              "  => " +
+              replaceBulk(value.content, [SKeyword1, SKeyword2], ["【" + BKeyword1 + "】", "【" + BKeyword2 + "】"]) +
+              "\n",
+            err => {
+              if (err) throw err;
+            }
+          );
+        }
+      });
+    });
+  });
+});
+
+//IncludesToKey();

@@ -1,5 +1,5 @@
 const replaceBulk = (str, findArray, replaceArray) => {
-  var i,
+  let i,
     regex = [],
     map = {};
   for (i = 0; i < findArray.length; i++) {
@@ -7,7 +7,7 @@ const replaceBulk = (str, findArray, replaceArray) => {
     map[findArray[i]] = replaceArray[i];
   }
   regex = regex.join("|");
-  str = str.replace(new RegExp(regex, "g"), function(matched) {
+  str = str.replace(new RegExp(regex, "g"), matched => {
     return map[matched];
   });
   return str;

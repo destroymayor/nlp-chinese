@@ -168,32 +168,40 @@ const SynonymsDict = async text => {
 
 //統計名詞動詞出現次數
 const StatisticsMenuVerbsAndNouns = async () => {
-  fs.readFile("./file/QAList.json", "utf-8", (err, data) => {
+  fs.readFile("./file/ExtendedQuestion.json", "utf-8", (err, data) => {
     if (err) throw err;
     const DataList = JSON.parse(data);
 
     const resultV = [];
     const resultN = [];
-    DataList.map(item => {
-      synonyms.tag(sify(item)).map(value => {
-        if (value.tag == "v") {
-          resultV.push(tify(value.word));
-        }
-      });
+    //  DataList.map(item => {
+    synonyms.tag(DataList[10]).map((value, index, array) => {
+      const arr = array.map(item => item);
+      if (value.tag == "n" || value.tag == "v") {
+        //resultV.push({ key1: tify(arr[index].word), key2: tify(arr[index + 1].word) });
+      }
     });
+    //  });
+    // DataList.map(item => {
+    //   synonyms.tag(sify(item)).map(value => {
+    //     if (value.tag == "v") {
+    //       resultV.push(tify(value.word));
+    //     }
+    //   });
+    // });
 
-    const result = {};
-    for (let i = 0; i < resultV.length; ++i) {
-      if (!result[resultV[i]]) result[resultV[i]] = 0;
-      ++result[resultV[i]];
-    }
+    // const result = {};
+    // for (let i = 0; i < resultV.length; ++i) {
+    //   if (!result[resultV[i]]) result[resultV[i]] = 0;
+    //   ++result[resultV[i]];
+    // }
 
-    const res = Object.entries(result);
-    let sorted = res.sort((a, b) => b[1] - a[1]);
+    // const res = Object.entries(result);
+    // let sorted = res.sort((a, b) => b[1] - a[1]);
 
-    fs.writeFile("./file/resultV.json", JSON.stringify(sorted), err => {
-      if (err) throw err;
-    });
+    // fs.writeFile("./file/resultV.json", JSON.stringify(sorted), err => {
+    //   if (err) throw err;
+    // });
   });
 };
 
@@ -261,8 +269,8 @@ const IncludesToKey = async () => {
   // });
 
   ////////////////
-
-  // const total = [];
+  //三星讀句子
+  const total = [];
   // const lineReader = require("readline").createInterface({
   //   input: fs.createReadStream("./file/SAMSUNG_Manual_Clean.txt")
   // });
@@ -284,48 +292,99 @@ const IncludesToKey = async () => {
   // });
 
   //////過濾
-  fs.readFile("./file/totalTwo_NandV.json", "utf-8", (err, data) => {
-    const list = JSON.parse(data);
+  // fs.readFile("./file/totalTwo_NandV.json", "utf-8", (err, data) => {
+  //   const list = JSON.parse(data);
+  //   fs.writeFile("./file/totalTwo_NandV.json", JSON.stringify(removeDuplicates(list, "content")), err => {
+  //     if (err) throw err;
+  //   });
+  // });
+};
 
-    fs.writeFile("./file/totalTwo_NandV.json", JSON.stringify(removeDuplicates(list, "content")), err => {
-      if (err) throw err;
+const Samsung_ChangeNV = () => {
+  fs.readFile("./file/B_keyTwo_NandV.json", "utf-8", (errors, BKeyData) => {
+    const BKeyDataList = JSON.parse(BKeyData);
+
+    fs.readFile("./file/totalTwo_NandV.json", "utf-8", (err, data) => {
+      const list = JSON.parse(data);
+      fs.readFile("./file/S_keyTwo_NandV.json", "utf-8", (error, KeyData) => {
+        const i = 0;
+        const j = 0;
+        const SKeyDataList = JSON.parse(KeyData);
+        const SKeyword1 = SKeyDataList[i].key1;
+        const SKeyword2 = SKeyDataList[j].key2;
+        const BKeyword1 = BKeyDataList[i].key1;
+        const BKeyword2 = BKeyDataList[j].key2;
+
+        list.map(value => {
+          if (value.content.match(new RegExp(".*" + SKeyword1 + ".*" + SKeyword2))) {
+            console.log(
+              SKeyword1,
+              SKeyword2,
+              replaceBulk(value.content, [SKeyword1, SKeyword2], ["【" + BKeyword1 + "】", "【" + BKeyword2 + "】"]) + "\n"
+            );
+            fs.appendFile(
+              "./file/B_change_NandV1.txt",
+              "Samsung N=" +
+                SKeyword1 +
+                ", V=" +
+                SKeyword2 +
+                " | black N=" +
+                BKeyword1 +
+                ", V=" +
+                BKeyword2 +
+                "  => " +
+                replaceBulk(value.content, [SKeyword1, SKeyword2], ["【" + BKeyword1 + "】", "【" + BKeyword2 + "】"]) +
+                "\n",
+              err => {
+                if (err) throw err;
+              }
+            );
+          }
+        });
+      });
     });
   });
 };
 
-fs.readFile("./file/B_keyTwo_NandV.json", "utf-8", (errors, BKeyData) => {
-  const BKeyDataList = JSON.parse(BKeyData);
-
-  fs.readFile("./file/totalTwo_NandV.json", "utf-8", (err, data) => {
-    const list = JSON.parse(data);
-    fs.readFile("./file/S_keyTwo_NandV.json", "utf-8", (error, KeyData) => {
-      const i = 0;
-      const j = 0;
-      const SKeyDataList = JSON.parse(KeyData);
-      const SKeyword1 = SKeyDataList[i].key1;
-      const SKeyword2 = SKeyDataList[j].key2;
-      const BKeyword1 = BKeyDataList[i].key1;
-      const BKeyword2 = BKeyDataList[j].key2;
-
+fs.readFile("./file/Black/Black_VandV.json", "utf-8", (err, BlackKeyData) => {
+  const BKeyList = JSON.parse(BlackKeyData);
+  fs.readFile("./file/Samsung/Samsung_VandV.json", "utf-8", (error, SKeyKeyData) => {
+    const SKeyList = JSON.parse(SKeyKeyData);
+    fs.readFile("./file/ExtendedQuestion.json", "utf-8", (e, data) => {
+      const list = JSON.parse(data);
+      const i = 9;
+      const BKeyword1 = BKeyList[i].key1;
+      const BKeyword2 = BKeyList[i].key2;
+      const SKeyword1 = SKeyList[i].key1;
+      const SKeyword2 = SKeyList[i].key2;
       list.map(value => {
-        if (value.content.match(new RegExp(".*" + SKeyword1 + ".*" + SKeyword2))) {
+        if (value.match(BKeyword1) && value.includes(BKeyword2)) {
           console.log(
-            SKeyword1,
-            SKeyword2,
-            replaceBulk(value.content, [SKeyword1, SKeyword2], ["【" + BKeyword1 + "】", "【" + BKeyword2 + "】"]) + "\n"
-          );
-          fs.appendFile(
-            "./file/Samsung_change_NandV1.txt",
-            "Samsung N=" +
+            "B " +
+              BKeyword1 +
+              "," +
+              BKeyword2 +
+              ",S " +
               SKeyword1 +
-              ", V=" +
+              "," +
               SKeyword2 +
-              " | black N=" +
+              " =>" +
+              replaceBulk(value, [BKeyword1, BKeyword2], ["【" + SKeyword1 + "】", "【" + SKeyword2 + "】"]) +
+              "\n"
+          );
+
+          fs.appendFile(
+            "./file/output/B_change_VandV.txt",
+            "black V=" +
               BKeyword1 +
               ", V=" +
               BKeyword2 +
-              "  => " +
-              replaceBulk(value.content, [SKeyword1, SKeyword2], ["【" + BKeyword1 + "】", "【" + BKeyword2 + "】"]) +
+              " | Samsung V=" +
+              SKeyword1 +
+              ", V=" +
+              SKeyword2 +
+              " => " +
+              replaceBulk(value, [BKeyword1, BKeyword2], ["【" + SKeyword1 + "】", "【" + SKeyword2 + "】"]) +
               "\n",
             err => {
               if (err) throw err;
@@ -336,5 +395,3 @@ fs.readFile("./file/B_keyTwo_NandV.json", "utf-8", (errors, BKeyData) => {
     });
   });
 });
-
-//IncludesToKey();

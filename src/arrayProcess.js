@@ -13,6 +13,11 @@ const replaceBulk = (str, findArray, replaceArray) => {
   return str;
 };
 
+const replaceCumulative = (str, find, replace) => {
+  for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), replace[i]);
+  return str;
+};
+
 const removeDuplicates = (originalArray, prop) => {
   var newArray = [];
   var lookupObject = {};
@@ -27,4 +32,4 @@ const removeDuplicates = (originalArray, prop) => {
   return newArray;
 };
 
-export { replaceBulk, removeDuplicates };
+export { replaceBulk, replaceCumulative, removeDuplicates };

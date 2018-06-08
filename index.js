@@ -397,73 +397,70 @@ const BlackCatCombinationReplaceOnce = async () => {
 const BlackCatCombinationReplace = async () => {
   fs.readFile("./file/ExtendedQuestion.json", "utf-8", (err, BlackCatData) => {
     const BlackCatList = JSON.parse(BlackCatData);
-    fs.readFile("./file/Black/Black_NandN.json", "utf-8", (err, BlackKeyword) => {
+    fs.readFile("./file/Black/Black_VandN.json", "utf-8", (err, BlackKeyword) => {
       const BlackKeywordList = JSON.parse(BlackKeyword);
-      fs.readFile("./file/Samsung/Samsung_NandN.json", "utf-8", (e, SamsungKeyword) => {
+      fs.readFile("./file/Samsung/Samsung_VandN.json", "utf-8", (e, SamsungKeyword) => {
         const SamsungKeywordList = JSON.parse(SamsungKeyword);
 
-        for (let i = 0; i <= 9; i++) {
-          //const i = 2;
-          const j = 1;
-          const BKeyword1 = BlackKeywordList[i].key1[0];
-          const BKeyword2 = BlackKeywordList[i].key2[0];
-          const SKeyword1 = SamsungKeywordList[i].key1[0];
-          const SKeyword2 = SamsungKeywordList[i].key2[0];
-          BlackCatList.map(value => {
-            //配對原始句子中出現的keyword組合
-            if (value.match(new RegExp(BKeyword1 + ".*?" + BKeyword2))) {
-              const NN_Once_Output = replaceCumulative(
-                value,
-                [BKeyword1, BKeyword2],
-                ["【" + SKeyword1 + "】", "【" + SKeyword2 + "】"]
-              );
+        const i = 8;
+        const j = i + 1;
+        const BKeyword1 = BlackKeywordList[i].key1[0];
+        const BKeyword2 = BlackKeywordList[i].key2[0];
+        const SKeyword1 = SamsungKeywordList[i].key1[0];
+        const SKeyword2 = SamsungKeywordList[i].key2[0];
+        BlackCatList.map(value => {
+          //配對原始句子中出現的keyword組合
+          if (value.match(new RegExp(BKeyword1 + ".*?" + BKeyword2))) {
+            const NN_Once_Output = replaceCumulative(
+              value,
+              [BKeyword1, BKeyword2],
+              ["【" + SKeyword1 + "】", "【" + SKeyword2 + "】"]
+            );
 
-              const NN_Once = replaceCumulative(value, [BKeyword1, BKeyword2], [SKeyword1, SKeyword2]);
-              nodejieba.tag(NN_Once).map((CutValue, index, array) => {
-                const arr = array.map(item => item);
-                //找出詞性
-                if (CutValue.tag == "v") {
-                  //過濾字串
-                  if (NN_Once.match(new RegExp(SKeyword1 + ".*?" + SKeyword2 + ".*?" + arr[index].word))) {
-                    // fs.appendFile(
-                    //   "./file/output/Black_VN.txt",
-                    //   "\n black=" +
-                    //     BKeyword1 +
-                    //     "," +
-                    //     BKeyword2 +
-                    //     " , Samsung=" +
-                    //     SKeyword1 +
-                    //     "," +
-                    //     SKeyword2 +
-                    //     "," +
-                    //     arr[index].word +
-                    //     "\n nv => " +
-                    //     NN_Once_Output +
-                    //     " | nvn => " +
-                    //     replaceCumulative(NN_Once_Output, [arr[index].word], ["(" + SamsungKeywordList[i].key1[0] + ")"]),
-                    //   err => {
-                    //     if (err) throw err;
-                    //   }
-                    // );
-                    console.log(
-                      "\n black=",
-                      BKeyword1,
-                      BKeyword2,
-                      ", samsung = ",
-                      SKeyword1,
-                      SKeyword2,
-                      arr[index].word,
-                      "\n",
-                      NN_Once_Output,
-                      "\n",
-                      replaceCumulative(NN_Once_Output, [arr[index].word], ["(" + SamsungKeywordList[i].key1[0] + ")"])
-                    );
-                  }
+            const NN_Once = replaceCumulative(value, [BKeyword1, BKeyword2], [SKeyword1, SKeyword2]);
+            nodejieba.tag(NN_Once).map((CutValue, index, array) => {
+              const arr = array.map(item => item);
+              //找出詞性
+              if (CutValue.tag == "v") {
+                //過濾字串
+                if (NN_Once.match(new RegExp(SKeyword1 + ".*?" + SKeyword2 + ".*?" + arr[index].word))) {
+                  fs.appendFile(
+                    "./file/output/Black_VN.txt",
+                    "\n black v" +
+                      BKeyword1 +
+                      ", n" +
+                      BKeyword2 +
+                      " , Samsung v" +
+                      SKeyword1 +
+                      ",n" +
+                      SKeyword2 +
+                      "\n vn => " +
+                      NN_Once_Output +
+                      " | vnv => " +
+                      replaceCumulative(NN_Once_Output, [arr[index].word], ["(" + SamsungKeywordList[j].key1[0] + ")"]),
+                    err => {
+                      if (err) throw err;
+                    }
+                  );
+                  console.log(
+                    "\n black=",
+                    BKeyword1,
+                    BKeyword2,
+                    arr[index].word,
+                    ", samsung = ",
+                    SKeyword1,
+                    SKeyword2,
+                    SamsungKeywordList[i].key1[0],
+                    "\n",
+                    NN_Once_Output,
+                    "\n",
+                    replaceCumulative(NN_Once_Output, [arr[index].word], ["(" + SamsungKeywordList[j].key1[0] + ")"])
+                  );
                 }
-              });
-            }
-          });
-        }
+              }
+            });
+          }
+        });
       });
     });
   });

@@ -231,38 +231,38 @@ const SamsungStatisticsMenuVerbsAndNouns = async () => {
 const IncludesToKey = async () => {
   const DataListN = [];
   const DataListV = [];
-  // fs.readFile("./file/blackCat_key_N.json", "utf-8", (err, Ndata) => {
-  //   const Nlist = JSON.parse(Ndata);
-  //   fs.readFile("./file/blackCat_key_V.json", "utf-8", (error, Vdata) => {
-  //     const Vlist = JSON.parse(Vdata);
+  fs.readFile("./file/blackCat_key_N.json", "utf-8", (err, Ndata) => {
+    const Nlist = JSON.parse(Ndata);
+    fs.readFile("./file/blackCat_key_V.json", "utf-8", (error, Vdata) => {
+      const Vlist = JSON.parse(Vdata);
 
-  //     //名詞
-  //     [].concat(...Nlist).map((item, index) => {
-  //       if (typeof item === "string") {
-  //         if (index <= 100) {
-  //           DataListN.push(item);
-  //         }
-  //       }
-  //     });
+      //名詞
+      [].concat(...Nlist).map((item, index) => {
+        if (typeof item === "string") {
+          if (index <= 100) {
+            DataListN.push(item);
+          }
+        }
+      });
 
-  //     //動詞
-  //     [].concat(...Vlist).map((item, index) => {
-  //       if (typeof item === "string") {
-  //         if (index <= 100) {
-  //           DataListV.push(item);
-  //         }
-  //       }
-  //     });
+      //動詞
+      [].concat(...Vlist).map((item, index) => {
+        if (typeof item === "string") {
+          if (index <= 100) {
+            DataListV.push(item);
+          }
+        }
+      });
 
-  //     const keyList = [];
-  //     for (let i = 0; i < 10; i++) {
-  //       for (let j = 0; j < 10 - 1; j++) {
-  //         keyList.push({ key1: DataListN[i], key2: DataListV[j + 1] });
-  //       }
-  //     }
-  //     fs.writeFile("./file/B_keyTwo_NandV.json", JSON.stringify(keyList));
-  //   });
-  // });
+      const keyList = [];
+      for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 10 - 1; j++) {
+          keyList.push({ key1: DataListN[i], key2: DataListV[j + 1] });
+        }
+      }
+      fs.writeFile("./file/B_keyTwo_NandV.json", JSON.stringify(keyList));
+    });
+  });
 
   ////////////////
   //三星讀句子
@@ -296,122 +296,82 @@ const IncludesToKey = async () => {
   // });
 };
 
-const Samsung_ChangeNV = () => {
-  fs.readFile("./file/B_keyTwo_NandV.json", "utf-8", (errors, BKeyData) => {
-    const BKeyDataList = JSON.parse(BKeyData);
-
-    fs.readFile("./file/totalTwo_NandV.json", "utf-8", (err, data) => {
-      const list = JSON.parse(data);
-      fs.readFile("./file/S_keyTwo_NandV.json", "utf-8", (error, KeyData) => {
-        const i = 0;
-        const j = 0;
-        const SKeyDataList = JSON.parse(KeyData);
-        const SKeyword1 = SKeyDataList[i].key1;
-        const SKeyword2 = SKeyDataList[j].key2;
-        const BKeyword1 = BKeyDataList[i].key1;
-        const BKeyword2 = BKeyDataList[j].key2;
-
-        list.map(value => {
-          if (value.content.match(new RegExp(".*" + SKeyword1 + ".*" + SKeyword2))) {
-            console.log(
-              SKeyword1,
-              SKeyword2,
-              replaceBulk(value.content, [SKeyword1, SKeyword2], ["【" + BKeyword1 + "】", "【" + BKeyword2 + "】"]) + "\n"
-            );
-            fs.appendFile(
-              "./file/B_change_NandV1.txt",
-              "Samsung N=" +
-                SKeyword1 +
-                ", V=" +
-                SKeyword2 +
-                " | black N=" +
-                BKeyword1 +
-                ", V=" +
-                BKeyword2 +
-                "  => " +
-                replaceBulk(value.content, [SKeyword1, SKeyword2], ["【" + BKeyword1 + "】", "【" + BKeyword2 + "】"]) +
-                "\n",
-              err => {
-                if (err) throw err;
-              }
-            );
-          }
-        });
-      });
-    });
-  });
-};
-
 const BlackCatCombinationReplace = async () => {
   fs.readFile("./file/ExtendedQuestion.json", "utf-8", (err, BlackCatData) => {
     const BlackCatList = JSON.parse(BlackCatData);
-    fs.readFile("./file/Black/Black_VandN.json", "utf-8", (err, BlackKeyword) => {
+    fs.readFile("./file/Black/Black_NandN.json", "utf-8", (err, BlackKeyword) => {
       const BlackKeywordList = JSON.parse(BlackKeyword);
-      fs.readFile("./file/Samsung/Samsung_VandN.json", "utf-8", (e, SamsungKeyword) => {
+      fs.readFile("./file/Samsung/Samsung_NandN.json", "utf-8", (e, SamsungKeyword) => {
         const SamsungKeywordList = JSON.parse(SamsungKeyword);
 
-        const i = 8;
-        const j = i + 1;
-        const BKeyword1 = BlackKeywordList[i].key1[0];
-        const BKeyword2 = BlackKeywordList[i].key2[0];
-        const SKeyword1 = SamsungKeywordList[i].key1[0];
-        const SKeyword2 = SamsungKeywordList[i].key2[0];
+        for (let i = 0; i < 9; i++) {
+          const j = i + 1;
 
-        BlackCatList.map(value => {
-          //配對原始句子中出現的keyword組合
-          if (value.match(new RegExp(BKeyword1 + ".*?" + BKeyword2))) {
-            //第一次替換 output
-            const NN_Once_Output = replaceCumulative(
-              value,
-              [BKeyword1, BKeyword2],
-              ["【" + SKeyword1 + "】", "【" + SKeyword2 + "】"]
-            );
-            const NN_Once = replaceCumulative(value, [BKeyword1, BKeyword2], [SKeyword1, SKeyword2]);
+          // XX組合
+          const BKeyword1 = BlackKeywordList[i].key1[0];
+          const BKeyword2 = BlackKeywordList[i].key2[0];
+          const SKeyword1 = SamsungKeywordList.nn[i].key1[0];
+          const SKeyword2 = SamsungKeywordList.nn[i].key2[0];
+          // XX {X}組合
+          const SKeyword3 = SamsungKeywordList.nn[j].key1[0];
 
-            //針對第一次替換後的句子做斷詞
-            nodejieba.tag(NN_Once).map((CutValue, index, array) => {
-              const arr = array.map(item => item);
-              //只取特定詞性
-              if (CutValue.tag == "v") {
-                //只取第一次替換後句子中的組合
-                if (NN_Once.match(new RegExp(SKeyword1 + ".*?" + SKeyword2 + ".*?" + arr[index].word))) {
-                  // fs.appendFile(
-                  //   "./file/output/Black_VN.txt",
-                  //   "\n black v" +
-                  //     BKeyword1 +
-                  //     ", n" +
-                  //     BKeyword2 +
-                  //     " , Samsung v" +
-                  //     SKeyword1 +
-                  //     ",n" +
-                  //     SKeyword2 +
-                  //     "\n vn => " +
-                  //     NN_Once_Output +
-                  //     " | vnv => " +
-                  //     replaceCumulative(NN_Once_Output, [arr[index].word], ["(" + SamsungKeywordList[j].key1[0] + ")"]),
-                  //   err => {
-                  //     if (err) throw err;
-                  //   }
-                  // );
-                  console.log(
-                    "\n black=",
-                    BKeyword1,
-                    BKeyword2,
-                    arr[index].word,
-                    ", samsung = ",
-                    SKeyword1,
-                    SKeyword2,
-                    SamsungKeywordList[i].key1[0],
-                    "\n",
-                    NN_Once_Output,
-                    "\n",
-                    replaceCumulative(NN_Once_Output, [arr[index].word], ["(" + SamsungKeywordList[j].key1[0] + ")"])
-                  );
+          BlackCatList.map(value => {
+            //配對原始句子中出現的keyword組合
+            if (value.match(new RegExp(BKeyword1 + ".*?" + BKeyword2))) {
+              //第一次替換 output
+              const NN_Once_Output = replaceCumulative(
+                value,
+                [BKeyword1, BKeyword2],
+                ["【" + SKeyword1 + "】", "【" + SKeyword2 + "】"]
+              );
+              const NN_Once = replaceCumulative(value, [BKeyword1, BKeyword2], [SKeyword1, SKeyword2]);
+              //針對第一次替換後的句子做斷詞
+
+              nodejieba.tag(NN_Once).map((CutValue, index, array) => {
+                const arr = array.map(item => item);
+                //   //只取特定詞性
+                if (CutValue.tag == "n") {
+                  //     //只取第一次替換後句子中的組合
+                  if (NN_Once.match(new RegExp(SKeyword1 + ".*?" + SKeyword2 + ".*?" + arr[index].word))) {
+                    // fs.appendFile(
+                    //   "./file/output/Black_NNN.txt",
+                    //   "\n black=" +
+                    //     BKeyword1 +
+                    //     "," +
+                    //     BKeyword2 +
+                    //     "," +
+                    //     arr[index].word +
+                    //     " , Samsung=" +
+                    //     SKeyword1 +
+                    //     "," +
+                    //     SKeyword2 +
+                    //     "," +
+                    //     SKeyword3 +
+                    //     "\n nnn => " +
+                    //     replaceCumulative(NN_Once_Output, [arr[index].word], ["(" + SKeyword3 + ")"]) +
+                    //     "\n",
+                    //   err => {
+                    //     if (err) throw err;
+                    //   }
+                    // );
+                    console.log(
+                      "\n Black=",
+                      BKeyword1,
+                      BKeyword2,
+                      arr[index].word,
+                      ", Samsung = ",
+                      SKeyword1,
+                      SKeyword2,
+                      SKeyword3,
+                      "\n",
+                      replaceCumulative(NN_Once_Output, [arr[index].word], ["(" + SKeyword3 + ")"])
+                    );
+                  }
                 }
-              }
-            });
-          }
-        });
+              });
+            }
+          });
+        }
       });
     });
   });

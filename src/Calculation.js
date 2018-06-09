@@ -1,6 +1,5 @@
-// distance process
+// 萊文斯坦距離
 import Fastlevenshtein from "fast-levenshtein";
-import lcs from "node-lcs";
 
 // 兩個字串相似度
 const similarity = async (one, two) => {
@@ -48,4 +47,166 @@ const naiveHammerDistance = (str1, str2) => {
   return dist;
 };
 
-export { similarity, getMeanAndVar, naiveHammerDistance };
+//動態編程
+//最長共同子字串
+const longestCommonSubstring = (s1, s2) => {
+  const substringMatrix = Array(s2.length + 1)
+    .fill(null)
+    .map(() => {
+      return Array(s1.length + 1).fill(null);
+    });
+
+  for (let columnIndex = 0; columnIndex <= s1.length; columnIndex += 1) {
+    substringMatrix[0][columnIndex] = 0;
+  }
+
+  for (let rowIndex = 0; rowIndex <= s2.length; rowIndex += 1) {
+    substringMatrix[rowIndex][0] = 0;
+  }
+
+  let longestSubstringLength = 0;
+  let longestSubstringColumn = 0;
+  let longestSubstringRow = 0;
+
+  for (let rowIndex = 1; rowIndex <= s2.length; rowIndex += 1) {
+    for (let columnIndex = 1; columnIndex <= s1.length; columnIndex += 1) {
+      if (s1[columnIndex - 1] === s2[rowIndex - 1]) {
+        substringMatrix[rowIndex][columnIndex] = substringMatrix[rowIndex - 1][columnIndex - 1] + 1;
+      } else {
+        substringMatrix[rowIndex][columnIndex] = 0;
+      }
+
+      if (substringMatrix[rowIndex][columnIndex] > longestSubstringLength) {
+        longestSubstringLength = substringMatrix[rowIndex][columnIndex];
+        longestSubstringColumn = columnIndex;
+        longestSubstringRow = rowIndex;
+      }
+    }
+  }
+
+  if (longestSubstringLength === 0) {
+    return "";
+  }
+
+  let longestSubstring = "";
+
+  while (substringMatrix[longestSubstringRow][longestSubstringColumn] > 0) {
+    longestSubstring = s1[longestSubstringColumn - 1] + longestSubstring;
+    longestSubstringRow -= 1;
+    longestSubstringColumn -= 1;
+  }
+
+  return longestSubstring;
+};
+
+//最長共同子序列
+const longestCommonSubsequnce = (set1, set2) => {
+  const lcsMatrix = Array(set2.length + 1)
+    .fill(null)
+    .map(() => Array(set1.length + 1).fill(null));
+
+  for (let columnIndex = 0; columnIndex <= set1.length; columnIndex += 1) {
+    lcsMatrix[0][columnIndex] = 0;
+  }
+
+  for (let rowIndex = 0; rowIndex <= set2.length; rowIndex += 1) {
+    lcsMatrix[rowIndex][0] = 0;
+  }
+
+  for (let rowIndex = 1; rowIndex <= set2.length; rowIndex += 1) {
+    for (let columnIndex = 1; columnIndex <= set1.length; columnIndex += 1) {
+      if (set1[columnIndex - 1] === set2[rowIndex - 1]) {
+        lcsMatrix[rowIndex][columnIndex] = lcsMatrix[rowIndex - 1][columnIndex - 1] + 1;
+      } else {
+        lcsMatrix[rowIndex][columnIndex] = Math.max(lcsMatrix[rowIndex - 1][columnIndex], lcsMatrix[rowIndex][columnIndex - 1]);
+      }
+    }
+  }
+
+  if (!lcsMatrix[set2.length][set1.length]) {
+    return [""];
+  }
+
+  const longestSequence = [];
+  let columnIndex = set1.length;
+  let rowIndex = set2.length;
+
+  while (columnIndex > 0 || rowIndex > 0) {
+    if (set1[columnIndex - 1] === set2[rowIndex - 1]) {
+      longestSequence.unshift(set1[columnIndex - 1]);
+      columnIndex -= 1;
+      rowIndex -= 1;
+    } else if (lcsMatrix[rowIndex][columnIndex] === lcsMatrix[rowIndex][columnIndex - 1]) {
+      columnIndex -= 1;
+    } else {
+      rowIndex -= 1;
+    }
+  }
+
+  return longestSequence;
+};
+
+//最短共同子序列
+const shortestCommonSupersequence = (set1, set2) => {
+  const lcs = longestCommonSubsequnce(set1, set2);
+
+  if (lcs.length === 1 && lcs[0] === "") {
+    return set1.concat(set2);
+  }
+
+  let supersequence = [];
+
+  let setIndex1 = 0;
+  let setIndex2 = 0;
+  let lcsIndex = 0;
+  let setOnHold1 = false;
+  let setOnHold2 = false;
+
+  while (lcsIndex < lcs.length) {
+    if (setIndex1 < set1.length) {
+      if (!setOnHold1 && set1[setIndex1] !== lcs[lcsIndex]) {
+        supersequence.push(set1[setIndex1]);
+        setIndex1 += 1;
+      } else {
+        setOnHold1 = true;
+      }
+    }
+
+    if (setIndex2 < set2.length) {
+      if (!setOnHold2 && set2[setIndex2] !== lcs[lcsIndex]) {
+        supersequence.push(set2[setIndex2]);
+        setIndex2 += 1;
+      } else {
+        setOnHold2 = true;
+      }
+    }
+
+    if (setOnHold1 && setOnHold2) {
+      supersequence.push(lcs[lcsIndex]);
+      lcsIndex += 1;
+      setIndex1 += 1;
+      setIndex2 += 1;
+      setOnHold1 = false;
+      setOnHold2 = false;
+    }
+  }
+
+  if (setIndex1 < set1.length) {
+    supersequence = supersequence.concat(set1.slice(setIndex1));
+  }
+
+  if (setIndex2 < set2.length) {
+    supersequence = supersequence.concat(set2.slice(setIndex2));
+  }
+
+  return supersequence;
+};
+
+export {
+  similarity,
+  getMeanAndVar,
+  naiveHammerDistance,
+  longestCommonSubstring,
+  longestCommonSubsequnce,
+  shortestCommonSupersequence
+};

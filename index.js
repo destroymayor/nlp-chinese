@@ -12,6 +12,8 @@ import { tify, sify } from "chinese-conv";
 
 import { replaceBulk, replaceCumulative, removeDuplicates } from "./src/arrayProcess";
 
+import { longestCommonSubstring, longestCommonSubsequnce, shortestCommonSupersequence } from "./src/Calculation";
+
 //同義詞
 //import synonyms from "node-synonyms";
 
@@ -377,42 +379,113 @@ const BlackCatCombinationReplace = async () => {
   });
 };
 
-//BlackCatCombinationReplace();
+const CombinationReplace = () => {
+  fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (err, BlackSentenceData) => {
+    const BlackSentenceList = JSON.parse(BlackSentenceData);
+    fs.readFile("./file/Samsung/Samsung_CombinationAppearsSentence.json", "utf-8", (err, SamsungSentenceData) => {
+      const SamsungSentenceList = JSON.parse(SamsungSentenceData).map(item => item);
 
-fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (err, BlackSentenceData) => {
-  const BlackSentenceList = JSON.parse(BlackSentenceData);
-  fs.readFile("./file/Samsung/Samsung_CombinationAppearsSentence.json", "utf-8", (err, SamsungSentenceData) => {
-    const SamsungSentenceList = JSON.parse(SamsungSentenceData).map(item => item);
-
-    //針對所有Samsung句子作斷詞
-    const SamsungSentenceListTag = SamsungSentenceList.map(item => {
-      const total = [];
-      nodejieba.tag(item.Sentence).map(value => {
-        if (value.tag == "n") {
-          total.push(value);
-        }
+      //針對所有Samsung句子作斷詞 /取名詞
+      const SamsungSentenceListTagNoun = SamsungSentenceList.map(item => {
+        const total = [];
+        nodejieba.tag(item.Sentence).map(value => {
+          if (value.tag == "n") {
+            total.push(value);
+          }
+        });
+        //過濾重複的詞
+        const result = removeDuplicates(total, "word");
+        return result;
       });
 
-      //過濾重複的詞
-      const result = removeDuplicates(total, "word");
-      return result;
-    });
+      //針對所有Samsung句子作斷詞 /取動詞
+      const SamsungSentenceListTagVerb = SamsungSentenceList.map(item => {
+        const total = [];
+        nodejieba.tag(item.Sentence).map(value => {
+          if (value.tag == "v") {
+            total.push(value);
+          }
+        });
+        //過濾重複的詞
+        const result = removeDuplicates(total, "word");
+        return result;
+      });
 
-    const one = 1;
-    const two = one + 1;
-    const three = two + 1;
-    BlackSentenceList.map(BlackValue => {
-      if (BlackValue.Sentence.match(new RegExp(BlackValue.key1 + ".*?" + BlackValue.key2))) {
-        console.log(
-          BlackValue.key1,
-          BlackValue.key2,
-          replaceCumulative(
+      const Sindex = 1100;
+      // 詞組合
+      const Stag1 = SamsungSentenceListTagNoun[Sindex][0].word;
+      const Stag2 = SamsungSentenceListTagVerb[Sindex][1].word;
+      const Stag3 = SamsungSentenceListTagNoun[Sindex][2].word;
+
+      // 迭代所有句子
+      BlackSentenceList.map(BlackValue => {
+        if (BlackValue.Sentence.match(new RegExp(BlackValue.key1 + ".*?" + BlackValue.key2))) {
+          //第一次替換(兩個keyword)
+          const firstCombination_result = replaceCumulative(
             BlackValue.Sentence,
             [BlackValue.key1, BlackValue.key2],
-            ["【" + SamsungSentenceListTag[100][one].word + "】", "【" + SamsungSentenceListTag[100][two].word + "】"]
-          )
-        );
-      }
+            ["【" + Stag1 + "】", "【" + Stag2 + "】"]
+          );
+          const firstCombination = replaceCumulative(BlackValue.Sentence, [BlackValue.key1, BlackValue.key2], [Stag1, Stag2]);
+
+          //將第一次替換後的句子進行詞性標註
+          nodejieba.tag(firstCombination).map((BlackKeyword, index, array) => {
+            const arr = array.map(item => item);
+            //只取出特定詞性
+            if (BlackKeyword.tag == "v") {
+              if (firstCombination.match(new RegExp(Stag1 + ".*?" + Stag2 + ".*?" + arr[index].word))) {
+                console.log(
+                  "\n black ",
+                  BlackValue.key1,
+                  BlackValue.key2,
+                  arr[index].word,
+                  ", samsung",
+                  Stag1,
+                  Stag2,
+                  Stag3,
+                  "\n",
+                  firstCombination_result,
+                  "\n",
+                  replaceCumulative(
+                    BlackValue.Sentence,
+                    [BlackValue.key1, BlackValue.key2, arr[index].word],
+                    ["【" + Stag1 + "】", "【" + Stag2 + "】", "(" + Stag3 + ")"]
+                  )
+                );
+                // fs.appendFile(
+                //   "./file/output/newBlack_NNN.txt",
+                //   "\nblack " +
+                //     BlackValue.key1 +
+                //     "," +
+                //     BlackValue.key2 +
+                //     "," +
+                //     arr[index].word +
+                //     ", samsung " +
+                //     Stag1 +
+                //     "," +
+                //     Stag2 +
+                //     "," +
+                //     Stag3 +
+                //     "\nnn=> " +
+                //     firstCombination_result +
+                //     "  |  nnn=> " +
+                //     replaceCumulative(
+                //       BlackValue.Sentence,
+                //       [BlackValue.key1, BlackValue.key2, arr[index].word],
+                //       ["【" + Stag1 + "】", "【" + Stag2 + "】", "(" + Stag3 + ")"]
+                //     ) +
+                //     "\n",
+                //   err => {
+                //     if (err) throw err;
+                //   }
+                // );
+              }
+            }
+          });
+        }
+      });
     });
   });
-});
+};
+
+CombinationReplace();

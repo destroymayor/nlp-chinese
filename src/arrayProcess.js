@@ -18,6 +18,7 @@ const replaceCumulative = (str, find, replace) => {
   return str;
 };
 
+//陣列去重複 prop = 給予key name
 const removeDuplicates = (originalArray, prop) => {
   var newArray = [];
   var lookupObject = {};

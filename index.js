@@ -308,8 +308,8 @@ const BlackCatCombinationReplace = async () => {
           const j = i + 1;
 
           // XX組合
-          const BKeyword1 = BlackKeywordList[i].key1[0];
-          const BKeyword2 = BlackKeywordList[i].key2[0];
+          const BKeyword1 = BlackKeywordList.nn[i].key1[0];
+          const BKeyword2 = BlackKeywordList.nn[i].key2[0];
           const SKeyword1 = SamsungKeywordList.nn[i].key1[0];
           const SKeyword2 = SamsungKeywordList.nn[i].key2[0];
           // XX {X}組合
@@ -377,4 +377,42 @@ const BlackCatCombinationReplace = async () => {
   });
 };
 
-BlackCatCombinationReplace();
+//BlackCatCombinationReplace();
+
+fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (err, BlackSentenceData) => {
+  const BlackSentenceList = JSON.parse(BlackSentenceData);
+  fs.readFile("./file/Samsung/Samsung_CombinationAppearsSentence.json", "utf-8", (err, SamsungSentenceData) => {
+    const SamsungSentenceList = JSON.parse(SamsungSentenceData).map(item => item);
+
+    //針對所有Samsung句子作斷詞
+    const SamsungSentenceListTag = SamsungSentenceList.map(item => {
+      const total = [];
+      nodejieba.tag(item.Sentence).map(value => {
+        if (value.tag == "n") {
+          total.push(value);
+        }
+      });
+
+      //過濾重複的詞
+      const result = removeDuplicates(total, "word");
+      return result;
+    });
+
+    const one = 1;
+    const two = one + 1;
+    const three = two + 1;
+    BlackSentenceList.map(BlackValue => {
+      if (BlackValue.Sentence.match(new RegExp(BlackValue.key1 + ".*?" + BlackValue.key2))) {
+        console.log(
+          BlackValue.key1,
+          BlackValue.key2,
+          replaceCumulative(
+            BlackValue.Sentence,
+            [BlackValue.key1, BlackValue.key2],
+            ["【" + SamsungSentenceListTag[100][one].word + "】", "【" + SamsungSentenceListTag[100][two].word + "】"]
+          )
+        );
+      }
+    });
+  });
+});

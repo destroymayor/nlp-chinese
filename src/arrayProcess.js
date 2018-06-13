@@ -14,7 +14,7 @@ const replaceBulk = (str, findArray, replaceArray) => {
 };
 
 const replaceCumulative = (str, find, replace) => {
-  for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), replace[i]);
+  for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "【" + replace[i] + "】");
   return str;
 };
 

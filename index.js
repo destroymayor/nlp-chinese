@@ -581,29 +581,26 @@ const CombinationReplaceAll = () => {
       // 迭代所有句子
       BlackSentenceList.map(BlackValue => {
         const BlackSentenceListTagArray = [];
-
         nodejieba.tag(BlackValue.Sentence).map(BlackSentenceListTagValue => {
-          // console.log(BlackSentenceListTagValue);
           if (BlackSentenceListTagValue.tag == "n" && BlackSentenceListTagValue.word.length > 1) {
             BlackSentenceListTagArray.push(BlackSentenceListTagValue.word);
           }
         });
 
         const BlackSentenceListTagArrayFilter = BlackSentenceListTagArray.filter(element => BlackKeywordResult.includes(element));
-        // console.log(BlackValue.Sentence, BlackSentenceListTagArrayFilter);
 
-        fs.appendFile(
-          "./file/output/Black_AllReplaceNoun.txt",
-          "\nblack 句子所有名詞= " +
-            BlackSentenceListTagArrayFilter +
-            "\n原句子     => " +
-            BlackValue.Sentence +
-            "\n所有名詞替換=> " +
-            replaceCumulative(BlackValue.Sentence, BlackSentenceListTagArrayFilter, SamsungSentenceNoun[130]) +
-            "\n",
-          err => {
-            if (err) throw err;
-          }
+        // fs.appendFile(
+        //   "./file/output/Black_AllReplaceNoun.txt",
+        //   "\nblack 句子所有名詞= " +
+        //     BlackSentenceListTagArrayFilter +
+        //     "\n原句子     => " +
+        //     BlackValue.Sentence +
+        //     "\n所有名詞替換=> " +
+        //     replaceCumulative(BlackValue.Sentence, BlackSentenceListTagArrayFilter, SamsungSentenceNoun[130]) +
+        //     "\n",
+        //   err => {
+        //     if (err) throw err;
+        //   }
         );
       });
     });

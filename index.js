@@ -581,7 +581,9 @@ const CombinationReplaceAll = () => {
       // 迭代所有句子
       BlackSentenceList.map(BlackValue => {
         const BlackSentenceListTagArray = [];
+
         nodejieba.tag(BlackValue.Sentence).map(BlackSentenceListTagValue => {
+          // console.log(BlackSentenceListTagValue);
           if (BlackSentenceListTagValue.tag == "n" && BlackSentenceListTagValue.word.length > 1) {
             BlackSentenceListTagArray.push(BlackSentenceListTagValue.word);
           }
@@ -601,7 +603,7 @@ const CombinationReplaceAll = () => {
         //   err => {
         //     if (err) throw err;
         //   }
-        );
+        // );
       });
     });
   });

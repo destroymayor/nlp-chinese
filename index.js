@@ -554,7 +554,7 @@ const CombinationReplaceAll = () => {
       const BlackSentenceNoun = BlackSentenceList.map(item => {
         const total = [];
         nodejieba.tag(item.Sentence).map(value => {
-          if (value.tag == "n") {
+          if (value.tag == "n" || value.tag == "v") {
             total.push(value.word);
           }
         });
@@ -565,7 +565,7 @@ const CombinationReplaceAll = () => {
       const BlackKeywordList = [].concat(...BlackSentenceNoun);
       const BlackKeywordResult = [...new Set(BlackKeywordList)];
 
-      //全部替換
+      //Samsung句子斷詞取名詞
       const SamsungSentenceNoun = SamsungSentenceList.map(item => {
         const total = [];
         nodejieba.tag(item.Sentence).map(value => {
@@ -578,32 +578,82 @@ const CombinationReplaceAll = () => {
         return result;
       });
 
+      //Samsung句子斷詞取動詞
+      const SamsungSentenceVerb = SamsungSentenceList.map(item => {
+        const total = [];
+        nodejieba.tag(item.Sentence).map(value => {
+          if (value.tag == "v") {
+            total.push(value.word);
+          }
+        });
+        //過濾重複的詞
+        const result = [...new Set(total)];
+        return result;
+      });
+
       // 迭代所有句子
       BlackSentenceList.map(BlackValue => {
-        const BlackSentenceListTagArray = [];
-
+        //名詞list
+        const BlackSentenceListTagArrayNoun = [];
+        //動詞list
+        const BlackSentenceListTagArrayVerb = [];
         nodejieba.tag(BlackValue.Sentence).map(BlackSentenceListTagValue => {
-          // console.log(BlackSentenceListTagValue);
+          //判斷是名詞
           if (BlackSentenceListTagValue.tag == "n" && BlackSentenceListTagValue.word.length > 1) {
-            BlackSentenceListTagArray.push(BlackSentenceListTagValue.word);
+            BlackSentenceListTagArrayNoun.push(BlackSentenceListTagValue.word);
+          }
+
+          //判斷是動詞
+          if (BlackSentenceListTagValue.tag == "v" && BlackSentenceListTagValue.word.length > 1) {
+            BlackSentenceListTagArrayVerb.push(BlackSentenceListTagValue.word);
           }
         });
 
-        const BlackSentenceListTagArrayFilter = BlackSentenceListTagArray.filter(element => BlackKeywordResult.includes(element));
+        //////
+        //過濾名詞list
+        const BlackSentenceListTagArrayFilterNoun = BlackSentenceListTagArrayNoun.filter(element =>
+          BlackKeywordResult.includes(element)
+        );
 
-        // fs.appendFile(
-        //   "./file/output/Black_AllReplaceNoun.txt",
-        //   "\nblack 句子所有名詞= " +
-        //     BlackSentenceListTagArrayFilter +
-        //     "\n原句子     => " +
-        //     BlackValue.Sentence +
-        //     "\n所有名詞替換=> " +
-        //     replaceCumulative(BlackValue.Sentence, BlackSentenceListTagArrayFilter, SamsungSentenceNoun[130]) +
-        //     "\n",
-        //   err => {
-        //     if (err) throw err;
-        //   }
-        // );
+        //過濾動詞list
+        const BlackSentenceListTagArrayFilterVerb = BlackSentenceListTagArrayVerb.filter(element =>
+          BlackKeywordResult.includes(element)
+        );
+        ////
+
+        //replace
+        //先替換名詞
+        const replaceIndex = 140;
+        const replaceNoun = replaceCumulative(
+          BlackValue.Sentence,
+          BlackSentenceListTagArrayFilterNoun,
+          SamsungSentenceNoun[replaceIndex],
+          "n"
+        );
+
+        //替換動詞
+        const replaceVerb = replaceCumulative(
+          replaceNoun,
+          BlackSentenceListTagArrayFilterVerb,
+          SamsungSentenceVerb[replaceIndex],
+          "v"
+        );
+
+        fs.appendFile(
+          "./file/output/Black_AllReplace.txt",
+          "\nblack 名詞= " +
+            BlackSentenceListTagArrayFilterNoun +
+            " | 動詞= " +
+            BlackSentenceListTagArrayFilterVerb +
+            "\n原句子 => " +
+            BlackValue.Sentence +
+            "\n替換後 => " +
+            replaceVerb +
+            "\n",
+          err => {
+            if (err) throw err;
+          }
+        );
       });
     });
   });

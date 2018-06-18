@@ -13,8 +13,14 @@ const replaceBulk = (str, findArray, replaceArray) => {
   return str;
 };
 
-const replaceCumulative = (str, find, replace) => {
-  for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "【" + replace[i] + "】");
+const replaceCumulative = (str, find, replace, Vocabulary) => {
+  if (Vocabulary == "n") {
+    for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "【" + replace[i] + "】");
+  }
+  if (Vocabulary == "v") {
+    for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "(" + replace[i] + ")");
+  }
+
   return str;
 };
 

@@ -1,28 +1,27 @@
 import nodejieba from "nodejieba";
 
 // 載入字典
-nodejieba.load({
-  dict: "./jieba/dict.txt"
-});
+nodejieba.load({ dict: "./jieba/dict.txt" });
 
 // file process
 import fs from "fs";
-import path from "path";
+//import path from "path";
 
 // 距離計算
-import lcs from "longest-common-subsequence";
+//import lcs from "longest-common-subsequence";
 
 //繁轉簡
+//tify 轉成正體中文
 import { tify, sify } from "chinese-conv";
 
 import { replaceBulk, replaceCumulative, removeDuplicates } from "./src/arrayProcess";
 
-import {
-  levenshteinDistance,
-  longestCommonSubstring,
-  longestCommonSubsequnce,
-  shortestCommonSupersequence
-} from "./src/Calculation";
+// import {
+//   levenshteinDistance,
+//   longestCommonSubstring,
+//   longestCommonSubsequnce,
+//   shortestCommonSupersequence
+// } from "./src/Calculation";
 
 //同義詞
 //import synonyms from "node-synonyms";
@@ -623,7 +622,7 @@ const CombinationReplaceAll = () => {
 
         //replace
         //先替換名詞
-        const replaceIndex = 140;
+        const replaceIndex = 131;
         const replaceNoun = replaceCumulative(
           BlackValue.Sentence,
           BlackSentenceListTagArrayFilterNoun,
@@ -639,25 +638,29 @@ const CombinationReplaceAll = () => {
           "v"
         );
 
-        fs.appendFile(
-          "./file/output/Black_AllReplace.txt",
-          "\nblack 名詞= " +
-            BlackSentenceListTagArrayFilterNoun +
-            " | 動詞= " +
-            BlackSentenceListTagArrayFilterVerb +
-            "\n原句子 => " +
-            BlackValue.Sentence +
-            "\n替換後 => " +
-            replaceVerb +
-            "\n",
-          err => {
-            if (err) throw err;
-          }
-        );
+        fs.appendFile("./file/output/AllReplace.json", "'" + replaceVerb + "'" + ",", err => {
+          if (err) throw err;
+        });
+
+        // fs.appendFile(
+        //   "./file/output/Black_AllReplace.txt",
+        //   "\nblack 名詞= " +
+        //     BlackSentenceListTagArrayFilterNoun +
+        //     " | 動詞= " +
+        //     BlackSentenceListTagArrayFilterVerb +
+        //     "\n原句子 => " +
+        //     BlackValue.Sentence +
+        //     "\n替換後 => " +
+        //     replaceVerb +
+        //     "\n",
+        //   err => {
+        //     if (err) throw err;
+        //   }
+        // );
       });
     });
   });
 };
 
 //CombinationReplace();
-CombinationReplaceAll();
+//CombinationReplaceAll();

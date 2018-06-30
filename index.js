@@ -14,14 +14,16 @@ import fs from "fs";
 //tify 轉成正體中文
 import { tify, sify } from "chinese-conv";
 
+import Fastlevenshtein from "fast-levenshtein";
 import { replaceBulk, replaceCumulative, removeDuplicates } from "./src/arrayProcess";
 
-// import {
-//   levenshteinDistance,
-//   longestCommonSubstring,
-//   longestCommonSubsequnce,
-//   shortestCommonSupersequence
-// } from "./src/Calculation";
+import {
+  similarity
+  // levenshteinDistance,
+  // longestCommonSubstring,
+  // longestCommonSubsequnce,
+  // shortestCommonSupersequence
+} from "./src/Calculation";
 
 //同義詞
 //import synonyms from "node-synonyms";
@@ -662,5 +664,23 @@ const CombinationReplaceAll = () => {
   });
 };
 
-//CombinationReplace();
-//CombinationReplaceAll();
+// 收斂 尋找相似句子
+const searchSimilarSentences = async () => {
+  fs.readFile("./file/output/AllReplace.json", "utf-8", (err, data) => {
+    if (err) throw err;
+
+    const SentenceDataList = JSON.parse(data);
+    // 欲搜尋的句子
+    const SearchSentence = "裝置的傳輸線可以修理嗎";
+
+    //迭代語料庫所有句子
+    SentenceDataList.map(SentenceValue => {
+      //句子相似度配對
+      if (similarity(SearchSentence, SentenceValue) >= 0.5) {
+        console.log(similarity(SearchSentence, SentenceValue), SentenceValue);
+      }
+    });
+  });
+};
+
+searchSimilarSentences();

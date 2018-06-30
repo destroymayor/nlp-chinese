@@ -2,7 +2,7 @@
 import Fastlevenshtein from "fast-levenshtein";
 
 // 兩個字串相似度
-const similarity = async (one, two) => {
+const similarity = (one, two) => {
   if (!one || !two || !one.length || !two.length) return 0;
   if (one === two) return 1;
   let d = Fastlevenshtein.get(one.toLowerCase(), two.toLowerCase());

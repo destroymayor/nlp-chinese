@@ -26,7 +26,7 @@ import {
 } from "./src/Calculation";
 
 //同義詞
-//import synonyms from "node-synonyms";
+import synonyms from "node-synonyms";
 
 const CreateFsmData = async () => {
   const DataList = [];
@@ -673,12 +673,19 @@ const searchSimilarSentences = async () => {
     // 欲搜尋的句子
     const SearchSentence = "裝置的傳輸線可以修理嗎";
 
+    //相似句的list
+    const SearchSentenceResultList = [];
+
     //迭代語料庫所有句子
     SentenceDataList.map(SentenceValue => {
       //句子相似度配對
       if (similarity(SearchSentence, SentenceValue) >= 0.5) {
-        console.log(similarity(SearchSentence, SentenceValue), SentenceValue);
+        SearchSentenceResultList.push(SentenceValue);
       }
+    });
+
+    synonyms.seg(sify(SearchSentence), false, false).then(SentenceTagValue1 => {
+      synonyms.seg(sify(SearchSentenceResultList[20]), false, false).then(SentenceTagValue2 => {});
     });
   });
 };

@@ -6,8 +6,7 @@ nodejieba.load({ dict: "./jieba/dict.txt" });
 // file process
 import fs from "fs";
 
-//繁轉簡
-//tify 轉成正體中文
+//繁轉簡  tify=轉成正體中文
 import { tify, sify } from "chinese-conv";
 
 import Fastlevenshtein from "fast-levenshtein";
@@ -144,33 +143,52 @@ const CombinationReplaceAll = () => {
 };
 
 // 收斂 尋找相似句子
-const searchSimilarSentences = () => {
+const searchSimilarSentences = SearchSentence => {
   fs.readFile("./file/output/AllReplace.json", "utf-8", (err, data) => {
     if (err) throw err;
     const SentenceDataList = JSON.parse(data);
-
-    // 欲搜尋的句子
-    const SearchSentence = "裝置的傳輸線可以修理嗎";
 
     //相似句的list
     const SearchSentenceResultList = [];
     //迭代語料庫所有句子
     SentenceDataList.map(SentenceValue => {
       //句子相似度配對
-      if (similarity(SearchSentence, SentenceValue) >= 0.5) {
+      if (similarity(SearchSentence, SentenceValue) >= 0.6) {
         SearchSentenceResultList.push(SentenceValue);
+        console.log("相似句= ", SentenceValue);
+        synonyms.tag(SentenceValue).map(SentenceTagValue => {
+          //console.log(SentenceValue, SentenceTagValue);
+        });
       }
     });
 
-    synonyms.seg(sify(SearchSentence), false, false).then(SentenceTagValue1 => {
-      synonyms.seg(sify(SearchSentenceResultList[20]), false, false).then(SentenceTagValue2 => {
-        console.log(SentenceTagValue1, SentenceTagValue2);
-        synonyms.compare(sify("電源線"), sify("傳輸線")).then(similarity => {
-          console.log(similarity);
-        });
+    //計算斷詞後剩餘詞在向量裡的距離
+    const SentenceTagList1 = [];
+    const SentenceTagList2 = [];
+    //句1作斷詞後只取 n v
+    synonyms.tag(SearchSentence).map(SentenceTagValue1 => {
+      if (SentenceTagValue1.tag == "n" || SentenceTagValue1.tag == "v") {
+        SentenceTagList1.push(SentenceTagValue1);
+      }
+    });
+
+    //句2作斷詞後只取 n v
+    synonyms.tag(SearchSentenceResultList[3]).map(SentenceTagValue2 => {
+      if (SentenceTagValue2.tag == "n" || SentenceTagValue2.tag == "v") {
+        SentenceTagList2.push(SentenceTagValue2);
+      }
+    });
+
+    // console.log("句1剩餘詞=", SentenceTagList1, "\n句2剩餘詞=", SentenceTagList2);
+
+    SentenceTagList1.map(SentenceValue1 => {
+      SentenceTagList2.map(SentenceValue2 => {
+        // synonyms.compare(sify(SentenceValue1.word), sify(SentenceValue2.word)).then(similarity => {
+        //   //  console.log(SentenceValue1.word, SentenceValue2.word, similarity.toFixed(3));
+        // });
       });
     });
   });
 };
 
-searchSimilarSentences();
+searchSimilarSentences("裝置傳輸線應用程式出現的視窗是幾點");

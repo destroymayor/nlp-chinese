@@ -1,5 +1,4 @@
 import nodejieba from "nodejieba";
-
 // 載入字典
 nodejieba.load({ dict: "./jieba/dict.txt" });
 
@@ -9,16 +8,9 @@ import fs from "fs";
 //繁轉簡  tify=轉成正體中文
 import { tify, sify } from "chinese-conv";
 
-import Fastlevenshtein from "fast-levenshtein";
-import { replaceBulk, replaceCumulative, removeDuplicates } from "./src/arrayProcess";
+import { replaceCumulative } from "./src/ArrayProcess";
 
-import {
-  similarity
-  // levenshteinDistance,
-  // longestCommonSubstring,
-  // longestCommonSubsequnce,
-  // shortestCommonSupersequence
-} from "./src/Calculation";
+import { similarity } from "./src/Calculation";
 
 //同義詞
 import synonyms from "node-synonyms";
@@ -126,23 +118,61 @@ const CombinationReplaceAll = () => {
 };
 
 // 收斂 尋找相似句子
-const SearchSimilarSentences = SearchSentence => {
+const SearchSimilarSentences = () => {
   fs.readFile("./file/output/AllReplace.json", "utf-8", (err, data) => {
     if (err) throw err;
     const SentenceDataList = JSON.parse(data);
 
     //相似句 list
     const SearchSentenceResultList = [];
+    const SearchSentence = "裝置可以接上電源或使用傳輸線嗎";
+    const SearchWordCom = ["裝置", "可以", "傳輸線"];
+
     //迭代語料庫所有句子
     SentenceDataList.map(SentenceValue => {
       //句子相似度配對
+
+      // levenshtein
       if (similarity(SearchSentence, SentenceValue) >= 0.5) {
         SearchSentenceResultList.push(SentenceValue);
-        console.log("相似句= ", SentenceValue);
-        synonyms.tag(SentenceValue).map(SentenceTagValue => {
-          //console.log(SentenceValue, SentenceTagValue);
-        });
+        //console.log("levenshtein相似句= ", SentenceValue);
       }
+      //--------//
+
+      // 詞組合
+      if (SentenceValue.match(new RegExp(SearchWordCom[0] + ".*?" + SearchWordCom[1] + ".*?" + SearchWordCom[2]))) {
+        // console.log("詞組合相似句= ", SentenceValue);
+      }
+      //--------//
+
+      //// 詞性組合
+      const PartOfSpeechCombination = [];
+      synonyms.tag(SentenceValue).map(SentenceTagItem => {
+        if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
+          PartOfSpeechCombination.push({ sentence: SentenceValue, tag: SentenceTagItem.tag });
+        }
+      });
+      const seen = {};
+      const PartOfSpeechCombinationList = PartOfSpeechCombination.filter(entry => {
+        let previous;
+        if (seen.hasOwnProperty(entry.sentence)) {
+          previous = seen[entry.sentence];
+          previous.tag.push(entry.tag);
+          return false;
+        }
+        if (!Array.isArray(entry.tag)) {
+          entry.tag = [entry.tag];
+        }
+        seen[entry.sentence] = entry;
+        return true;
+      });
+
+      PartOfSpeechCombinationList.map(item => {
+        if ("nvn".includes(item.tag.toString().replace(new RegExp(",", "g"), ""))) {
+          console.log("\n相似句=", item.sentence, "\n詞性組合=", item.tag);
+        }
+      });
+      //--------//
     });
 
     //計算斷詞後剩餘詞在向量裡的距離
@@ -162,18 +192,16 @@ const SearchSimilarSentences = SearchSentence => {
       }
     });
 
-    SentenceTagListOne.map(SentenceValueOne => {
-      SentenceTagListTwo.map(SentenceValueTwo => {
-        synonyms.compare(sify(SentenceValueOne.word), sify(SentenceValueTwo.word)).then(similarity => {
-          if (SentenceValueOne.word !== SentenceValueTwo.word) {
-            console.log(similarity.toFixed(3), SentenceValueOne.word, SentenceValueTwo.word);
-          }
-        });
-      });
-    });
+    // SentenceTagListOne.map(SentenceValueOne => {
+    //   SentenceTagListTwo.map(SentenceValueTwo => {
+    //     synonyms.compare(sify(SentenceValueOne.word), sify(SentenceValueTwo.word)).then(similarity => {
+    //       if (SentenceValueOne.word !== SentenceValueTwo.word) {
+    //         console.log(similarity.toFixed(3), SentenceValueOne.word, SentenceValueTwo.word);
+    //       }
+    //     });
+    //   });
+    // });
   });
 };
 
-SearchSimilarSentences("裝置可以使用傳輸線和接上電源嗎");
-
-//CombinationReplaceAll();
+SearchSimilarSentences();

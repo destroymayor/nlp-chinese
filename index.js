@@ -70,18 +70,17 @@ const CombinationReplaceAll = () => {
         return result;
       });
 
+      const BlackSentenceListTagArrayNoun = [];
+      const BlackSentenceListTagArrayVerb = [];
       // 迭代所有句子
       BlackSentenceList.map(BlackValue => {
-        //名詞list
-        const BlackSentenceListTagArrayNoun = [];
-        //動詞list
-        const BlackSentenceListTagArrayVerb = [];
+        //名詞、動詞 list
+
         nodejieba.tag(BlackValue.Sentence).map(BlackSentenceListTagValue => {
           //判斷是名詞
           if (BlackSentenceListTagValue.tag == "n" && BlackSentenceListTagValue.word.length > 1) {
             BlackSentenceListTagArrayNoun.push(BlackSentenceListTagValue.word);
           }
-
           //判斷是動詞
           if (BlackSentenceListTagValue.tag == "v" && BlackSentenceListTagValue.word.length > 1) {
             BlackSentenceListTagArrayVerb.push(BlackSentenceListTagValue.word);
@@ -89,23 +88,23 @@ const CombinationReplaceAll = () => {
         });
 
         //////
-        //過濾名詞list
-        const BlackSentenceListTagArrayFilterNoun = BlackSentenceListTagArrayNoun.filter(element =>
-          BlackKeywordResult.includes(element)
-        );
+        //過濾名詞、動詞 list
+        const BlackSentenceListTagArrayFilterNoun = BlackSentenceListTagArrayNoun.filter(element => {
+          BlackKeywordResult.includes(element);
+        });
 
-        //過濾動詞list
         const BlackSentenceListTagArrayFilterVerb = BlackSentenceListTagArrayVerb.filter(element =>
           BlackKeywordResult.includes(element)
         );
+
         ////
 
-        //replace
+        //replace 3054
+        const replaceIndex = 1200;
         //先替換名詞
-        const replaceIndex = 131;
         const replaceNoun = replaceCumulative(
           BlackValue.Sentence,
-          BlackSentenceListTagArrayFilterNoun,
+          BlackSentenceListTagArrayNoun,
           SamsungSentenceNoun[replaceIndex],
           "n"
         );
@@ -118,42 +117,26 @@ const CombinationReplaceAll = () => {
           "v"
         );
 
-        fs.appendFile("./file/output/AllReplace.json", "'" + replaceVerb + "'" + ",", err => {
-          if (err) throw err;
-        });
-
-        // fs.appendFile(
-        //   "./file/output/Black_AllReplace.txt",
-        //   "\nblack 名詞= " +
-        //     BlackSentenceListTagArrayFilterNoun +
-        //     " | 動詞= " +
-        //     BlackSentenceListTagArrayFilterVerb +
-        //     "\n原句子 => " +
-        //     BlackValue.Sentence +
-        //     "\n替換後 => " +
-        //     replaceVerb +
-        //     "\n",
-        //   err => {
-        //     if (err) throw err;
-        //   }
-        // );
+        // fs.appendFile("./file/output/AllReplace1.json", "'" + replaceVerb + "'" + ",", err => {
+        //   if (err) throw err;
+        // });
       });
     });
   });
 };
 
 // 收斂 尋找相似句子
-const searchSimilarSentences = SearchSentence => {
+const SearchSimilarSentences = SearchSentence => {
   fs.readFile("./file/output/AllReplace.json", "utf-8", (err, data) => {
     if (err) throw err;
     const SentenceDataList = JSON.parse(data);
 
-    //相似句的list
+    //相似句 list
     const SearchSentenceResultList = [];
     //迭代語料庫所有句子
     SentenceDataList.map(SentenceValue => {
       //句子相似度配對
-      if (similarity(SearchSentence, SentenceValue) >= 0.6) {
+      if (similarity(SearchSentence, SentenceValue) >= 0.5) {
         SearchSentenceResultList.push(SentenceValue);
         console.log("相似句= ", SentenceValue);
         synonyms.tag(SentenceValue).map(SentenceTagValue => {
@@ -163,32 +146,34 @@ const searchSimilarSentences = SearchSentence => {
     });
 
     //計算斷詞後剩餘詞在向量裡的距離
-    const SentenceTagList1 = [];
-    const SentenceTagList2 = [];
+    const SentenceTagListOne = [];
+    const SentenceTagListTwo = [];
     //句1作斷詞後只取 n v
-    synonyms.tag(SearchSentence).map(SentenceTagValue1 => {
-      if (SentenceTagValue1.tag == "n" || SentenceTagValue1.tag == "v") {
-        SentenceTagList1.push(SentenceTagValue1);
+    synonyms.tag(SearchSentence).map(SentenceTagValueOne => {
+      if (SentenceTagValueOne.tag == "n" || SentenceTagValueOne.tag == "v") {
+        SentenceTagListOne.push(SentenceTagValueOne);
       }
     });
 
     //句2作斷詞後只取 n v
-    synonyms.tag(SearchSentenceResultList[3]).map(SentenceTagValue2 => {
-      if (SentenceTagValue2.tag == "n" || SentenceTagValue2.tag == "v") {
-        SentenceTagList2.push(SentenceTagValue2);
+    synonyms.tag(SearchSentenceResultList[3]).map(SentenceTagValueTwo => {
+      if (SentenceTagValueTwo.tag == "n" || SentenceTagValueTwo.tag == "v") {
+        SentenceTagListTwo.push(SentenceTagValueTwo);
       }
     });
 
-    // console.log("句1剩餘詞=", SentenceTagList1, "\n句2剩餘詞=", SentenceTagList2);
-
-    SentenceTagList1.map(SentenceValue1 => {
-      SentenceTagList2.map(SentenceValue2 => {
-        // synonyms.compare(sify(SentenceValue1.word), sify(SentenceValue2.word)).then(similarity => {
-        //   //  console.log(SentenceValue1.word, SentenceValue2.word, similarity.toFixed(3));
-        // });
+    SentenceTagListOne.map(SentenceValueOne => {
+      SentenceTagListTwo.map(SentenceValueTwo => {
+        synonyms.compare(sify(SentenceValueOne.word), sify(SentenceValueTwo.word)).then(similarity => {
+          if (SentenceValueOne.word !== SentenceValueTwo.word) {
+            console.log(similarity.toFixed(3), SentenceValueOne.word, SentenceValueTwo.word);
+          }
+        });
       });
     });
   });
 };
 
-searchSimilarSentences("裝置傳輸線應用程式出現的視窗是幾點");
+SearchSimilarSentences("裝置可以使用傳輸線和接上電源嗎");
+
+//CombinationReplaceAll();

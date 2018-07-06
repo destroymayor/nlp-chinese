@@ -62,11 +62,11 @@ const CombinationReplaceAll = () => {
         return result;
       });
 
-      const BlackSentenceListTagArrayNoun = [];
-      const BlackSentenceListTagArrayVerb = [];
       // 迭代所有句子
       BlackSentenceList.map(BlackValue => {
         //名詞、動詞 list
+        const BlackSentenceListTagArrayNoun = [];
+        const BlackSentenceListTagArrayVerb = [];
 
         nodejieba.tag(BlackValue.Sentence).map(BlackSentenceListTagValue => {
           //判斷是名詞
@@ -92,7 +92,7 @@ const CombinationReplaceAll = () => {
         ////
 
         //replace 3054
-        const replaceIndex = 1200;
+        const replaceIndex = 1240;
         //先替換名詞
         const replaceNoun = replaceCumulative(
           BlackValue.Sentence,
@@ -109,13 +109,16 @@ const CombinationReplaceAll = () => {
           "v"
         );
 
-        // fs.appendFile("./file/output/AllReplace1.json", "'" + replaceVerb + "'" + ",", err => {
-        //   if (err) throw err;
-        // });
+        console.log(replaceVerb);
+        fs.appendFile("./file/output/AllReplace1.json", "'" + replaceVerb + "'" + ",", err => {
+          if (err) throw err;
+        });
       });
     });
   });
 };
+
+//CombinationReplaceAll();
 
 // 收斂 尋找相似句子
 const SearchSimilarSentences = () => {
@@ -123,9 +126,10 @@ const SearchSimilarSentences = () => {
     if (err) throw err;
     const SentenceDataList = JSON.parse(data);
 
+    console.log(SentenceDataList.length);
     //相似句 list
     const SearchSentenceResultList = [];
-    const SearchSentence = "裝置可以接上電源或使用傳輸線嗎";
+    const SearchSentence = "裝置可以接上電源嗎";
     const SearchWordCom = ["裝置", "可以", "傳輸線"];
 
     //迭代語料庫所有句子
@@ -135,13 +139,13 @@ const SearchSimilarSentences = () => {
       // levenshtein
       if (similarity(SearchSentence, SentenceValue) >= 0.5) {
         SearchSentenceResultList.push(SentenceValue);
-        //console.log("levenshtein相似句= ", SentenceValue);
+        console.log("levenshtein相似句= ", similarity(SearchSentence, SentenceValue).toFixed(3), SentenceValue);
       }
       //--------//
 
       // 詞組合
       if (SentenceValue.match(new RegExp(SearchWordCom[0] + ".*?" + SearchWordCom[1] + ".*?" + SearchWordCom[2]))) {
-        // console.log("詞組合相似句= ", SentenceValue);
+        //console.log("詞組合相似句= ", SentenceValue);
       }
       //--------//
 
@@ -169,28 +173,28 @@ const SearchSimilarSentences = () => {
 
       PartOfSpeechCombinationList.map(item => {
         if ("nvn".includes(item.tag.toString().replace(new RegExp(",", "g"), ""))) {
-          console.log("\n相似句=", item.sentence, "\n詞性組合=", item.tag);
+          //console.log("\n相似句=", item.sentence, "\n詞性組合=", item.tag);
         }
       });
       //--------//
     });
 
     //計算斷詞後剩餘詞在向量裡的距離
-    const SentenceTagListOne = [];
-    const SentenceTagListTwo = [];
-    //句1作斷詞後只取 n v
-    synonyms.tag(SearchSentence).map(SentenceTagValueOne => {
-      if (SentenceTagValueOne.tag == "n" || SentenceTagValueOne.tag == "v") {
-        SentenceTagListOne.push(SentenceTagValueOne);
-      }
-    });
+    // const SentenceTagListOne = [];
+    // const SentenceTagListTwo = [];
+    // //句1作斷詞後只取 n v
+    // synonyms.tag(SearchSentence).map(SentenceTagValueOne => {
+    //   if (SentenceTagValueOne.tag == "n" || SentenceTagValueOne.tag == "v") {
+    //     SentenceTagListOne.push(SentenceTagValueOne);
+    //   }
+    // });
 
-    //句2作斷詞後只取 n v
-    synonyms.tag(SearchSentenceResultList[3]).map(SentenceTagValueTwo => {
-      if (SentenceTagValueTwo.tag == "n" || SentenceTagValueTwo.tag == "v") {
-        SentenceTagListTwo.push(SentenceTagValueTwo);
-      }
-    });
+    // //句2作斷詞後只取 n v
+    // synonyms.tag(SearchSentenceResultList[3]).map(SentenceTagValueTwo => {
+    //   if (SentenceTagValueTwo.tag == "n" || SentenceTagValueTwo.tag == "v") {
+    //     SentenceTagListTwo.push(SentenceTagValueTwo);
+    //   }
+    // });
 
     // SentenceTagListOne.map(SentenceValueOne => {
     //   SentenceTagListTwo.map(SentenceValueTwo => {
@@ -203,5 +207,7 @@ const SearchSimilarSentences = () => {
     // });
   });
 };
+
+//CombinationReplaceAll();
 
 SearchSimilarSentences();

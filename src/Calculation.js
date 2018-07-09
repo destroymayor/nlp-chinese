@@ -5,7 +5,7 @@ import Fastlevenshtein from "fast-levenshtein";
 const similarity = (one, two) => {
   if (!one || !two || !one.length || !two.length) return 0;
   if (one === two) return 1;
-  let d = Fastlevenshtein.get(one.toLowerCase(), two.toLowerCase());
+  let d = Fastlevenshtein.get(one, two);
   let longest = Math.max(one.length, two.length);
   return (longest - d) / longest;
 };

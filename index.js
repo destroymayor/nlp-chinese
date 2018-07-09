@@ -122,61 +122,82 @@ const CombinationReplaceAll = () => {
 
 // 收斂 尋找相似句子
 const SearchSimilarSentences = () => {
-  fs.readFile("./file/output/AllReplace.json", "utf-8", (err, data) => {
+  fs.readFile("./file/output/AllReplace.json", "utf-8", (err, SentenceDataList) => {
     if (err) throw err;
-    const SentenceDataList = JSON.parse(data);
 
-    console.log(SentenceDataList.length);
     //相似句 list
     const SearchSentenceResultList = [];
-    const SearchSentence = "裝置可以接上電源嗎";
-    const SearchWordCom = ["裝置", "可以", "傳輸線"];
+    // Samsung Sentence list
+    const SamsungSentenceListArray = [];
+    //迭代所有Samsung句子
+    fs.readFile("./file/Samsung/Samsung_CombinationAppearsSentence.json", "utf-8", (error, SamsungSentenceData) => {
+      if (error) throw error;
 
-    //迭代語料庫所有句子
-    SentenceDataList.map(SentenceValue => {
-      //句子相似度配對
-
-      // levenshtein
-      if (similarity(SearchSentence, SentenceValue) >= 0.5) {
-        SearchSentenceResultList.push(SentenceValue);
-        console.log("levenshtein相似句= ", similarity(SearchSentence, SentenceValue).toFixed(3), SentenceValue);
-      }
-      //--------//
-
-      // 詞組合
-      if (SentenceValue.match(new RegExp(SearchWordCom[0] + ".*?" + SearchWordCom[1] + ".*?" + SearchWordCom[2]))) {
-        //console.log("詞組合相似句= ", SentenceValue);
-      }
-      //--------//
-
-      //// 詞性組合
-      const PartOfSpeechCombination = [];
-      synonyms.tag(SentenceValue).map(SentenceTagItem => {
-        if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
-          PartOfSpeechCombination.push({ sentence: SentenceValue, tag: SentenceTagItem.tag });
-        }
-      });
-      const seen = {};
-      const PartOfSpeechCombinationList = PartOfSpeechCombination.filter(entry => {
-        let previous;
-        if (seen.hasOwnProperty(entry.sentence)) {
-          previous = seen[entry.sentence];
-          previous.tag.push(entry.tag);
-          return false;
-        }
-        if (!Array.isArray(entry.tag)) {
-          entry.tag = [entry.tag];
-        }
-        seen[entry.sentence] = entry;
-        return true;
+      JSON.parse(SamsungSentenceData).map(SamsungSentenceListValue => {
+        SamsungSentenceListArray.push(SamsungSentenceListValue.Sentence);
       });
 
-      PartOfSpeechCombinationList.map(item => {
-        if ("nvn".includes(item.tag.toString().replace(new RegExp(",", "g"), ""))) {
-          //console.log("\n相似句=", item.sentence, "\n詞性組合=", item.tag);
+      //迭代語料庫所有句子
+      JSON.parse(SentenceDataList).map((SentenceValue, SentenceIndex, SentenceValueArray) => {
+        const SentenceValueArr = SentenceValueArray.map(item => item);
+        //句子相似度配對
+        // levenshtein
+        const SearchSentenceList = [...new Set(SamsungSentenceListArray)];
+
+        SearchSentenceList.map((SearchSentenceListValue, SearchSentenceIndex, SearchSentenceListArray) => {
+          const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
+          if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
+            SearchSentenceResultList.push(SentenceValue);
+            console.log(
+              new Date().toLocaleString(),
+              similarity(SearchSentenceListValue, SentenceValue).toFixed(3),
+              SearchSentenceListValue,
+              "=> ",
+              SentenceValue
+            );
+            fs.appendFile("./file/output/SearchSentence.json", '"' + SentenceValue + '",', err => {
+              if (err) throw err;
+            });
+          }
+        });
+        //--------//
+
+        // 詞組合
+        const SearchWordCom = ["裝置", "可以", "傳輸線"];
+        if (SentenceValue.match(new RegExp(SearchWordCom[0] + ".*?" + SearchWordCom[1] + ".*?" + SearchWordCom[2]))) {
+          //console.log("詞組合相似句= ", SentenceValue);
         }
+        //--------//
+
+        //// 詞性組合
+        const PartOfSpeechCombination = [];
+        synonyms.tag(SentenceValue).map(SentenceTagItem => {
+          if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
+            PartOfSpeechCombination.push({ sentence: SentenceValue, tag: SentenceTagItem.tag });
+          }
+        });
+        const seen = {};
+        const PartOfSpeechCombinationList = PartOfSpeechCombination.filter(entry => {
+          let previous;
+          if (seen.hasOwnProperty(entry.sentence)) {
+            previous = seen[entry.sentence];
+            previous.tag.push(entry.tag);
+            return false;
+          }
+          if (!Array.isArray(entry.tag)) {
+            entry.tag = [entry.tag];
+          }
+          seen[entry.sentence] = entry;
+          return true;
+        });
+
+        PartOfSpeechCombinationList.map(item => {
+          if ("nvn".includes(item.tag.toString().replace(new RegExp(",", "g"), ""))) {
+            //console.log("\n相似句=", item.sentence, "\n詞性組合=", item.tag);
+          }
+        });
+        //--------//
       });
-      //--------//
     });
 
     //計算斷詞後剩餘詞在向量裡的距離
@@ -209,5 +230,4 @@ const SearchSimilarSentences = () => {
 };
 
 //CombinationReplaceAll();
-
 SearchSimilarSentences();

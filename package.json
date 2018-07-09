@@ -5,31 +5,19 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "curl": "node --experimental-modules curl.mjs",
     "dev": "nodemon --watch src --exec babel-watch ./index.js",
-    "fsm2png": "fsm2dot -f ./fsm/fsm.js -o ./fsm/fsm.dot && dot -Tjpg ./fsm/fsm.dot -o ./fsm/fsm.jpg"
+    "postinstall": "node-prune"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tensorflow/tfjs": "^0.11.2",
     "chinese-conv": "^1.0.1",
-    "common-substrings": "^1.0.2",
     "fast-levenshtein": "^2.0.6",
-    "fsm-as-promised": "^0.16.0",
-    "iconv-lite": "^0.4.23",
-    "jfile": "^1.1.12",
-    "longest-common-subsequence": "^1.0.4",
     "node-lcs": "^1.0.2",
     "node-synonyms": "^1.3.1",
     "nodejieba": "^2.2.6",
-    "pastafarian": "^1.2.1",
     "readline-specific": "^1.0.4",
-    "segment": "^0.1.3",
-    "similarity": "^1.1.1",
-    "slot-filler": "^1.0.6",
-    "unirest": "^0.5.1"
+    "segment": "^0.1.3"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -39,7 +27,6 @@
     "babel-plugin-transform-es2015-spread": "^6.22.0",
     "babel-plugin-transform-strict-mode": "^6.24.1",
     "babel-watch": "^2.0.7",
-    "javascript-state-machine": "^3.0.1",
     "nodemon": "^1.17.5"
   }
 }

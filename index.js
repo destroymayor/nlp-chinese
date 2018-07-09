@@ -4,14 +4,11 @@ nodejieba.load({ dict: "./jieba/dict.txt" });
 
 // file process
 import fs from "fs";
-
 //繁轉簡  tify=轉成正體中文
 import { tify, sify } from "chinese-conv";
 
-import { replaceCumulative } from "./src/ArrayProcess";
-
+import { replaceCumulative, removeDuplicates, deduplication_MergedObject2 } from "./src/ArrayProcess";
 import { similarity } from "./src/Calculation";
-
 //同義詞
 import synonyms from "node-synonyms";
 
@@ -118,8 +115,6 @@ const CombinationReplaceAll = () => {
   });
 };
 
-//CombinationReplaceAll();
-
 // 收斂 尋找相似句子
 const SearchSimilarSentences = () => {
   fs.readFile("./file/output/AllReplace.json", "utf-8", (err, SentenceDataList) => {
@@ -137,97 +132,95 @@ const SearchSimilarSentences = () => {
         SamsungSentenceListArray.push(SamsungSentenceListValue.Sentence);
       });
 
+      //句子相似度配對
       //迭代語料庫所有句子
       JSON.parse(SentenceDataList).map((SentenceValue, SentenceIndex, SentenceValueArray) => {
         const SentenceValueArr = SentenceValueArray.map(item => item);
-        //句子相似度配對
-        // levenshtein
-        const SearchSentenceList = [...new Set(SamsungSentenceListArray)];
 
+        // levenshtein 方法
+        //Samsung 句子 list
+        const SearchSentenceList = [...new Set(SamsungSentenceListArray)];
         SearchSentenceList.map((SearchSentenceListValue, SearchSentenceIndex, SearchSentenceListArray) => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
+          //判斷相似度
           if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
-            SearchSentenceResultList.push(SentenceValue);
-            console.log(
-              new Date().toLocaleString(),
-              similarity(SearchSentenceListValue, SentenceValue).toFixed(3),
-              SearchSentenceListValue,
-              "=> ",
-              SentenceValue
-            );
-            fs.appendFile("./file/output/SearchSentence.json", '"' + SentenceValue + '",', err => {
+            console.log(new Date().toLocaleString(), similarity(SentenceValue, SearchSentenceListValue).toFixed(3));
+            SearchSentenceResultList.push({ SearchSentence: SearchSentenceListValue, SimilaritySentence: SentenceValue });
+            fs.writeFile("./file/output/SearchSentence.json", JSON.stringify(SearchSentenceResultList), err => {
               if (err) throw err;
             });
           }
         });
+
         //--------//
 
-        // 詞組合
+        // 詞組合方法
         const SearchWordCom = ["裝置", "可以", "傳輸線"];
         if (SentenceValue.match(new RegExp(SearchWordCom[0] + ".*?" + SearchWordCom[1] + ".*?" + SearchWordCom[2]))) {
-          //console.log("詞組合相似句= ", SentenceValue);
+          // console.log("詞組合相似句= ", SentenceValue);
         }
         //--------//
 
-        //// 詞性組合
-        const PartOfSpeechCombination = [];
+        //// 詞性組合方法
+        const PartOfSpeechCombinationList = [];
         synonyms.tag(SentenceValue).map(SentenceTagItem => {
           if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
-            PartOfSpeechCombination.push({ sentence: SentenceValue, tag: SentenceTagItem.tag });
+            PartOfSpeechCombinationList.push({ sentence: SentenceValue, tag: SentenceTagItem.tag });
           }
-        });
-        const seen = {};
-        const PartOfSpeechCombinationList = PartOfSpeechCombination.filter(entry => {
-          let previous;
-          if (seen.hasOwnProperty(entry.sentence)) {
-            previous = seen[entry.sentence];
-            previous.tag.push(entry.tag);
-            return false;
-          }
-          if (!Array.isArray(entry.tag)) {
-            entry.tag = [entry.tag];
-          }
-          seen[entry.sentence] = entry;
-          return true;
         });
 
-        PartOfSpeechCombinationList.map(item => {
-          if ("nvn".includes(item.tag.toString().replace(new RegExp(",", "g"), ""))) {
-            //console.log("\n相似句=", item.sentence, "\n詞性組合=", item.tag);
+        deduplication_MergedObject2(PartOfSpeechCombinationList).map(POSCombinationValue => {
+          const PartOfSpeechCombination = "nvnvvnv";
+          const POSCombination = POSCombinationValue.tag.toString().replace(new RegExp(",", "g"), "");
+          if (PartOfSpeechCombination === POSCombination) {
+            //console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
           }
         });
         //--------//
       });
     });
+  });
+};
 
-    //計算斷詞後剩餘詞在向量裡的距離
-    // const SentenceTagListOne = [];
-    // const SentenceTagListTwo = [];
-    // //句1作斷詞後只取 n v
-    // synonyms.tag(SearchSentence).map(SentenceTagValueOne => {
-    //   if (SentenceTagValueOne.tag == "n" || SentenceTagValueOne.tag == "v") {
-    //     SentenceTagListOne.push(SentenceTagValueOne);
-    //   }
-    // });
+//計算斷詞後剩餘詞在向量裡的距離
+const CalculationWordDistance = () => {
+  fs.readFile("./file/output/SearchSentence.json", "utf-8", (err, SentenceData) => {
+    const SentenceList = removeDuplicates(JSON.parse(SentenceData), "SimilaritySentence");
+
+    //句1作斷詞後只取 n v
+    const SentenceTagListOne = [];
+    synonyms.tag(SentenceList[0].SearchSentence).map(SentenceTagValueOne => {
+      if (SentenceTagValueOne.tag == "n" || SentenceTagValueOne.tag == "v") {
+        SentenceTagListOne.push(SentenceTagValueOne);
+      }
+    });
 
     // //句2作斷詞後只取 n v
-    // synonyms.tag(SearchSentenceResultList[3]).map(SentenceTagValueTwo => {
-    //   if (SentenceTagValueTwo.tag == "n" || SentenceTagValueTwo.tag == "v") {
-    //     SentenceTagListTwo.push(SentenceTagValueTwo);
-    //   }
-    // });
+    const SentenceTagListTwo = [];
+    synonyms.tag(SentenceList[0].SimilaritySentence).map(SentenceTagValueTwo => {
+      if (SentenceTagValueTwo.tag == "n" || SentenceTagValueTwo.tag == "v") {
+        SentenceTagListTwo.push(SentenceTagValueTwo);
+      }
+    });
 
-    // SentenceTagListOne.map(SentenceValueOne => {
-    //   SentenceTagListTwo.map(SentenceValueTwo => {
-    //     synonyms.compare(sify(SentenceValueOne.word), sify(SentenceValueTwo.word)).then(similarity => {
-    //       if (SentenceValueOne.word !== SentenceValueTwo.word) {
-    //         console.log(similarity.toFixed(3), SentenceValueOne.word, SentenceValueTwo.word);
-    //       }
-    //     });
-    //   });
-    // });
+    SentenceTagListOne.map(SentenceValueOne => {
+      SentenceTagListTwo.map(SentenceValueTwo => {
+        synonyms.compare(sify(SentenceValueOne.word), sify(SentenceValueTwo.word)).then(similarity => {
+          if (SentenceValueOne.word !== SentenceValueTwo.word) {
+            console.log(
+              SentenceList[0].SearchSentence,
+              SentenceList[0].SimilaritySentence,
+              similarity.toFixed(3),
+              SentenceValueOne.word,
+              SentenceValueTwo.word
+            );
+          }
+        });
+      });
+    });
   });
 };
 
 //CombinationReplaceAll();
-SearchSimilarSentences();
+//SearchSimilarSentences();
+CalculationWordDistance();

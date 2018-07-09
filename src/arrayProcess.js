@@ -39,4 +39,21 @@ const removeDuplicates = (originalArray, prop) => {
   return newArray;
 };
 
-export { replaceBulk, replaceCumulative, removeDuplicates };
+const deduplication_MergedObject2 = array => {
+  const SeenObject = {};
+  return array.filter(entry => {
+    let previous;
+    if (SeenObject.hasOwnProperty(entry.sentence)) {
+      previous = SeenObject[entry.sentence];
+      previous.tag.push(entry.tag);
+      return false;
+    }
+    if (!Array.isArray(entry.tag)) {
+      entry.tag = [entry.tag];
+    }
+    SeenObject[entry.sentence] = entry;
+    return true;
+  });
+};
+
+export { replaceBulk, replaceCumulative, removeDuplicates, deduplication_MergedObject2 };

@@ -144,11 +144,18 @@ const SearchSimilarSentences = () => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
           //判斷相似度
           if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
-            console.log(new Date().toLocaleString(), similarity(SentenceValue, SearchSentenceListValue).toFixed(3));
+            console.log(
+              "相似度=",
+              similarity(SentenceValue, SearchSentenceListValue).toFixed(3),
+              "輸入句= ",
+              SearchSentenceListValue,
+              "=> 相似句= ",
+              SentenceValue
+            );
             SearchSentenceResultList.push({ SearchSentence: SearchSentenceListValue, SimilaritySentence: SentenceValue });
-            fs.writeFile("./file/output/SearchSentence.json", JSON.stringify(SearchSentenceResultList), err => {
-              if (err) throw err;
-            });
+            // fs.writeFile("./file/output/SearchSentence.json", JSON.stringify(SearchSentenceResultList), err => {
+            //   if (err) throw err;
+            // });
           }
         });
 
@@ -157,7 +164,7 @@ const SearchSimilarSentences = () => {
         // 詞組合方法
         const SearchWordCom = ["裝置", "可以", "傳輸線"];
         if (SentenceValue.match(new RegExp(SearchWordCom[0] + ".*?" + SearchWordCom[1] + ".*?" + SearchWordCom[2]))) {
-          // console.log("詞組合相似句= ", SentenceValue);
+          // console.log("詞組合=[裝置, 可以, 傳輸線] =>", SentenceValue);
         }
         //--------//
 
@@ -173,7 +180,7 @@ const SearchSimilarSentences = () => {
           const PartOfSpeechCombination = "nvnvvnv";
           const POSCombination = POSCombinationValue.tag.toString().replace(new RegExp(",", "g"), "");
           if (PartOfSpeechCombination === POSCombination) {
-            //console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
+            // console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
           }
         });
         //--------//
@@ -189,7 +196,7 @@ const CalculationWordDistance = () => {
 
     //句1作斷詞後只取 n v
     const SentenceTagListOne = [];
-    synonyms.tag(SentenceList[0].SearchSentence).map(SentenceTagValueOne => {
+    synonyms.tag(SentenceList[50].SearchSentence).map(SentenceTagValueOne => {
       if (SentenceTagValueOne.tag == "n" || SentenceTagValueOne.tag == "v") {
         SentenceTagListOne.push(SentenceTagValueOne);
       }
@@ -197,7 +204,7 @@ const CalculationWordDistance = () => {
 
     // //句2作斷詞後只取 n v
     const SentenceTagListTwo = [];
-    synonyms.tag(SentenceList[0].SimilaritySentence).map(SentenceTagValueTwo => {
+    synonyms.tag(SentenceList[50].SimilaritySentence).map(SentenceTagValueTwo => {
       if (SentenceTagValueTwo.tag == "n" || SentenceTagValueTwo.tag == "v") {
         SentenceTagListTwo.push(SentenceTagValueTwo);
       }
@@ -206,7 +213,7 @@ const CalculationWordDistance = () => {
     SentenceTagListOne.map(SentenceValueOne => {
       SentenceTagListTwo.map(SentenceValueTwo => {
         synonyms.compare(sify(SentenceValueOne.word), sify(SentenceValueTwo.word)).then(similarity => {
-          if (SentenceValueOne.word !== SentenceValueTwo.word) {
+          if (SentenceValueOne.word !== SentenceValueTwo.word && similarity.toFixed(3) >= 0.5) {
             console.log(
               SentenceList[0].SearchSentence,
               SentenceList[0].SimilaritySentence,
@@ -222,5 +229,7 @@ const CalculationWordDistance = () => {
 };
 
 //CombinationReplaceAll();
-//SearchSimilarSentences();
-CalculationWordDistance();
+
+SearchSimilarSentences();
+
+//CalculationWordDistance();

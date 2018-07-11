@@ -39,7 +39,7 @@ const removeDuplicates = (originalArray, prop) => {
   return newArray;
 };
 
-const deduplication_MergedObject2 = array => {
+const DeduplicationMergedObject2 = array => {
   const SeenObject = {};
   return array.filter(entry => {
     let previous;
@@ -56,4 +56,4 @@ const deduplication_MergedObject2 = array => {
   });
 };
 
-export { replaceBulk, replaceCumulative, removeDuplicates, deduplication_MergedObject2 };
+export { replaceBulk, replaceCumulative, removeDuplicates, DeduplicationMergedObject2 };

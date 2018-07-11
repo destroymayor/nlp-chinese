@@ -7,8 +7,9 @@ import fs from "fs";
 //繁轉簡  tify=轉成正體中文
 import { tify, sify } from "chinese-conv";
 
-import { replaceCumulative, removeDuplicates, deduplication_MergedObject2 } from "./src/ArrayProcess";
-import { similarity } from "./src/Calculation";
+import { replaceCumulative, removeDuplicates, DeduplicationMergedObject2 } from "./src/ArrayProcess";
+import { similarity, metricLcs } from "./src/Calculation";
+
 //同義詞
 import synonyms from "node-synonyms";
 
@@ -120,7 +121,7 @@ const SearchSimilarSentences = () => {
   fs.readFile("./file/output/AllReplace.json", "utf-8", (err, SentenceDataList) => {
     if (err) throw err;
 
-    //相似句 list
+    //Similarity Sentence list
     const SearchSentenceResultList = [];
     // Samsung Sentence list
     const SamsungSentenceListArray = [];
@@ -132,13 +133,12 @@ const SearchSimilarSentences = () => {
         SamsungSentenceListArray.push(SamsungSentenceListValue.Sentence);
       });
 
-      //句子相似度配對
       //迭代語料庫所有句子
       JSON.parse(SentenceDataList).map((SentenceValue, SentenceIndex, SentenceValueArray) => {
         const SentenceValueArr = SentenceValueArray.map(item => item);
 
-        // levenshtein 方法
-        //Samsung 句子 list
+        //-------- levenshtein 句子對句子 --------//
+        //Samsung sentence list
         const SearchSentenceList = [...new Set(SamsungSentenceListArray)];
         SearchSentenceList.map((SearchSentenceListValue, SearchSentenceIndex, SearchSentenceListArray) => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
@@ -158,17 +158,16 @@ const SearchSimilarSentences = () => {
             // });
           }
         });
+        //---------------------------//
 
-        //--------//
-
-        // 詞組合方法
+        //-------- 詞組合方法 --------//
         const SearchWordCom = ["裝置", "可以", "傳輸線"];
         if (SentenceValue.match(new RegExp(SearchWordCom[0] + ".*?" + SearchWordCom[1] + ".*?" + SearchWordCom[2]))) {
           // console.log("詞組合=[裝置, 可以, 傳輸線] =>", SentenceValue);
         }
-        //--------//
+        //---------------------------//
 
-        //// 詞性組合方法
+        //-------- 詞性組合方法 --------//
         const PartOfSpeechCombinationList = [];
         synonyms.tag(SentenceValue).map(SentenceTagItem => {
           if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
@@ -176,14 +175,14 @@ const SearchSimilarSentences = () => {
           }
         });
 
-        deduplication_MergedObject2(PartOfSpeechCombinationList).map(POSCombinationValue => {
+        DeduplicationMergedObject2(PartOfSpeechCombinationList).map(POSCombinationValue => {
           const PartOfSpeechCombination = "nvnvvnv";
           const POSCombination = POSCombinationValue.tag.toString().replace(new RegExp(",", "g"), "");
           if (PartOfSpeechCombination === POSCombination) {
             // console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
           }
         });
-        //--------//
+        //---------------------------//
       });
     });
   });

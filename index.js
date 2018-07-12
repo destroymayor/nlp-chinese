@@ -1,5 +1,4 @@
 import nodejieba from "nodejieba";
-// 載入字典
 nodejieba.load({ dict: "./jieba/dict.txt" });
 
 // file process
@@ -8,12 +7,12 @@ import fs from "fs";
 import { tify, sify } from "chinese-conv";
 
 import { replaceCumulative, removeDuplicates, DeduplicationMergedObject2 } from "./src/ArrayProcess";
-import { similarity, metricLcs } from "./src/Calculation";
+import { similarity } from "./src/Calculation";
 
 //同義詞
-import synonyms from "node-synonyms";
+//import synonyms from "node-synonyms";
 
-//替換所有名詞
+//替換所有名詞或動詞
 const CombinationReplaceAll = () => {
   fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (err, BlackSentenceData) => {
     const BlackSentenceList = JSON.parse(BlackSentenceData);
@@ -77,20 +76,8 @@ const CombinationReplaceAll = () => {
           }
         });
 
-        //////
-        //過濾名詞、動詞 list
-        const BlackSentenceListTagArrayFilterNoun = BlackSentenceListTagArrayNoun.filter(element => {
-          BlackKeywordResult.includes(element);
-        });
-
-        const BlackSentenceListTagArrayFilterVerb = BlackSentenceListTagArrayVerb.filter(element =>
-          BlackKeywordResult.includes(element)
-        );
-
-        ////
-
         //replace 3054
-        const replaceIndex = 1240;
+        const replaceIndex = 100;
         //先替換名詞
         const replaceNoun = replaceCumulative(
           BlackValue.Sentence,
@@ -100,17 +87,25 @@ const CombinationReplaceAll = () => {
         );
 
         //替換動詞
-        const replaceVerb = replaceCumulative(
-          replaceNoun,
-          BlackSentenceListTagArrayFilterVerb,
+        const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[replaceIndex], "v");
+
+        console.log(
+          BlackValue.Sentence,
+          "\nblack=",
+          BlackSentenceListTagArrayNoun,
+          BlackSentenceListTagArrayVerb,
+          "\nsamsung=",
+          SamsungSentenceNoun[replaceIndex],
           SamsungSentenceVerb[replaceIndex],
-          "v"
+          "\n",
+          replaceVerb,
+          "\n"
         );
 
-        console.log(replaceVerb);
-        fs.appendFile("./file/output/AllReplace1.json", "'" + replaceVerb + "'" + ",", err => {
-          if (err) throw err;
-        });
+        // console.log(replaceVerb);
+        // fs.appendFile("./file/output/AllReplace1.json", "'" + replaceVerb + "'" + ",", err => {
+        //   if (err) throw err;
+        // });
       });
     });
   });
@@ -144,14 +139,14 @@ const SearchSimilarSentences = () => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
           //判斷相似度
           if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
-            console.log(
-              "相似度=",
-              similarity(SentenceValue, SearchSentenceListValue).toFixed(3),
-              "輸入句= ",
-              SearchSentenceListValue,
-              "=> 相似句= ",
-              SentenceValue
-            );
+            // console.log(
+            //   "相似度=",
+            //   similarity(SentenceValue, SearchSentenceListValue).toFixed(3),
+            //   "輸入句= ",
+            //   SearchSentenceListValue,
+            //   "=> 相似句= ",
+            //   SentenceValue
+            // );
             SearchSentenceResultList.push({ SearchSentence: SearchSentenceListValue, SimilaritySentence: SentenceValue });
             // fs.writeFile("./file/output/SearchSentence.json", JSON.stringify(SearchSentenceResultList), err => {
             //   if (err) throw err;
@@ -179,7 +174,7 @@ const SearchSimilarSentences = () => {
           const PartOfSpeechCombination = "nvnvvnv";
           const POSCombination = POSCombinationValue.tag.toString().replace(new RegExp(",", "g"), "");
           if (PartOfSpeechCombination === POSCombination) {
-            // console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
+            console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
           }
         });
         //---------------------------//
@@ -227,8 +222,8 @@ const CalculationWordDistance = () => {
   });
 };
 
-//CombinationReplaceAll();
+CombinationReplaceAll();
 
-SearchSimilarSentences();
+//SearchSimilarSentences();
 
 //CalculationWordDistance();

@@ -1,35 +1,3 @@
-const CreateFsmData = async () => {
-  const DataList = [];
-  const StateList = [];
-  await fs.readFile("./file/QA1.json", "utf-8", (err, data) => {
-    const List = JSON.parse(data);
-    List[Object.keys(List)].forEach(element => {
-      DataList.push(nodejieba.tag(element));
-    });
-    DataList.map((element, index) => {
-      DataList[index].map((value, index, array) => {
-        const arr = array.map(item => item);
-        if (array.indexOf(value) >= 0 && array.indexOf(value) < array.length - 1) {
-          StateList.push({
-            name: arr[index + 1].tag.replace("\r", ""),
-            from: arr[index].word,
-            to: arr[index + 1].word
-          });
-
-          const fsmDataList = {
-            initial: arr[0].word,
-            events: StateList
-          };
-
-          fs.writeFile("./fsm/fsmData.json", JSON.stringify(fsmDataList), "utf-8", err => {
-            if (err) console.log(err);
-          });
-        }
-      });
-    });
-  });
-};
-
 const ConcatExtendedQuestion = async () => {
   // const DataList = [];
   // await fs.readFile('./file/QA.json', 'utf-8', (err, data) => {
@@ -121,22 +89,6 @@ const SpokenWords = async () => {
       console.log(value.replace(new RegExp([...new Set(nounList)].join("|"), "g"), "【】"));
       console.log("----------");
     });
-  });
-};
-
-const SynonymsDict = async text => {
-  const list = [];
-  synonyms.nearby(sify(text)).then(result => {
-    const synonyms = result[1].map(item => item);
-    const word = result[0].map((item, index) => {
-      list.push({
-        word: tify(item),
-        synonym: synonyms[index]
-      });
-    });
-    console.log("同義詞");
-    console.log(list);
-    console.log("============================");
   });
 };
 

@@ -19,19 +19,19 @@ const CombinationReplaceAll = () => {
     fs.readFile("./file/Samsung/Samsung_CombinationAppearsSentence.json", "utf-8", (err, SamsungSentenceData) => {
       const SamsungSentenceList = JSON.parse(SamsungSentenceData).map(item => item);
 
-      const BlackSentenceNoun = BlackSentenceList.map(item => {
-        const total = [];
-        nodejieba.tag(item.Sentence).map(value => {
-          if (value.tag == "n" || value.tag == "v") {
-            total.push(value.word);
-          }
-        });
-        //過濾重複的詞
-        const result = [...new Set(total)];
-        return result;
-      });
-      const BlackKeywordList = [].concat(...BlackSentenceNoun);
-      const BlackKeywordResult = [...new Set(BlackKeywordList)];
+      // const BlackSentenceNoun = BlackSentenceList.map(item => {
+      //   const total = [];
+      //   nodejieba.tag(item.Sentence).map(value => {
+      //     if (value.tag == "n" || value.tag == "v") {
+      //       total.push(value.word);
+      //     }
+      //   });
+      //   //過濾重複的詞
+      //   const result = [...new Set(total)];
+      //   return result;
+      // });
+      // const BlackKeywordList = [].concat(...BlackSentenceNoun);
+      // const BlackKeywordResult = [...new Set(BlackKeywordList)];
 
       //Samsung句子斷詞取名詞
       const SamsungSentenceNoun = SamsungSentenceList.map(item => {
@@ -64,7 +64,6 @@ const CombinationReplaceAll = () => {
         //名詞、動詞 list
         const BlackSentenceListTagArrayNoun = [];
         const BlackSentenceListTagArrayVerb = [];
-
         nodejieba.tag(BlackValue.Sentence).map(BlackSentenceListTagValue => {
           //判斷是名詞
           if (BlackSentenceListTagValue.tag == "n" && BlackSentenceListTagValue.word.length > 1) {
@@ -78,31 +77,29 @@ const CombinationReplaceAll = () => {
 
         //replace 3054
         const replaceIndex = 100;
-        //先替換名詞
-        const replaceNoun = replaceCumulative(
-          BlackValue.Sentence,
-          BlackSentenceListTagArrayNoun,
-          SamsungSentenceNoun[replaceIndex],
-          "n"
-        );
+        for (let i = 0; i < 30; i++) {
+          //先替換名詞
+          const replaceNoun = replaceCumulative(BlackValue.Sentence, BlackSentenceListTagArrayNoun, SamsungSentenceNoun[i], "n");
 
-        //替換動詞
-        const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[replaceIndex], "v");
+          //替換動詞
+          const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
 
-        console.log(
-          BlackValue.Sentence,
-          "\nblack=",
-          BlackSentenceListTagArrayNoun,
-          BlackSentenceListTagArrayVerb,
-          "\nsamsung=",
-          SamsungSentenceNoun[replaceIndex],
-          SamsungSentenceVerb[replaceIndex],
-          "\n",
-          replaceVerb,
-          "\n"
-        );
+          console.log(
+            BlackValue.Sentence,
+            "\nblack   n=",
+            BlackSentenceListTagArrayNoun.toString(),
+            " v=",
+            BlackSentenceListTagArrayVerb.toString(),
+            "\nsamsung n=",
+            SamsungSentenceNoun[i].toString(),
+            " v=",
+            SamsungSentenceVerb[i].toString(),
+            "\n",
+            replaceVerb,
+            "\n"
+          );
+        }
 
-        // console.log(replaceVerb);
         // fs.appendFile("./file/output/AllReplace1.json", "'" + replaceVerb + "'" + ",", err => {
         //   if (err) throw err;
         // });

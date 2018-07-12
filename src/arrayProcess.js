@@ -17,6 +17,7 @@ const replaceCumulative = (str, find, replace, Vocabulary) => {
   if (Vocabulary == "n") {
     for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "[" + replace[i] + "]");
   }
+
   if (Vocabulary == "v") {
     for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "(" + replace[i] + ")");
   }

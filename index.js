@@ -76,29 +76,27 @@ const CombinationReplaceAll = () => {
         });
 
         //replace 3054
-        const replaceIndex = 100;
-        for (let i = 0; i < 30; i++) {
-          //先替換名詞
-          const replaceNoun = replaceCumulative(BlackValue.Sentence, BlackSentenceListTagArrayNoun, SamsungSentenceNoun[i], "n");
+        const i = 20;
+        //先替換名詞
+        const replaceNoun = replaceCumulative(BlackValue.Sentence, BlackSentenceListTagArrayNoun, SamsungSentenceNoun[i], "n");
 
-          //替換動詞
-          const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
+        //替換動詞
+        const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
 
-          console.log(
-            BlackValue.Sentence,
-            "\nblack   n=",
-            BlackSentenceListTagArrayNoun.toString(),
-            " v=",
-            BlackSentenceListTagArrayVerb.toString(),
-            "\nsamsung n=",
-            SamsungSentenceNoun[i].toString(),
-            " v=",
-            SamsungSentenceVerb[i].toString(),
-            "\n",
-            replaceVerb,
-            "\n"
-          );
-        }
+        console.log(
+          BlackValue.Sentence,
+          "\nblack   n=",
+          BlackSentenceListTagArrayNoun.toString(),
+          " v=",
+          BlackSentenceListTagArrayVerb.toString(),
+          "\nsamsung n=",
+          SamsungSentenceNoun[i].toString(),
+          " v=",
+          SamsungSentenceVerb[i].toString(),
+          "\n",
+          replaceVerb,
+          "\n"
+        );
 
         // fs.appendFile("./file/output/AllReplace1.json", "'" + replaceVerb + "'" + ",", err => {
         //   if (err) throw err;

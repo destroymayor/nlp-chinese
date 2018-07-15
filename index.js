@@ -27,7 +27,7 @@ const CombinationReplaceAll = () => {
         const SamsungSentenceNoun = SamsungSentenceList.map(item => {
           const total = [];
           nodejieba.tag(item.Sentence).map(value => {
-            if (value.tag == "n") total.push(value.word);
+            if (value.tag === "n") total.push(value.word);
           });
           const result = [...new Set(total)];
           return result;
@@ -37,7 +37,7 @@ const CombinationReplaceAll = () => {
         const SamsungSentenceVerb = SamsungSentenceList.map(item => {
           const total = [];
           nodejieba.tag(item.Sentence).map(value => {
-            if (value.tag == "v") total.push(value.word);
+            if (value.tag === "v") total.push(value.word);
           });
           const result = [...new Set(total)];
           return result;
@@ -45,16 +45,19 @@ const CombinationReplaceAll = () => {
 
         // iteration all sentence
         BlackSentenceList.map(BlackValue => {
+          const BlackSentence = BlackValue.Sentence;
+
           //Noun and Verb list
           const BlackSentenceListTagArrayNoun = [];
           const BlackSentenceListTagArrayVerb = [];
-          nodejieba.tag(BlackValue.Sentence).map(BlackSentenceListTagValue => {
+
+          nodejieba.tag(BlackSentence).map(BlackSentenceListTagValue => {
             //Noun and word length > 1
-            if (BlackSentenceListTagValue.tag == "n" && BlackSentenceListTagValue.word.length > 1) {
+            if (BlackSentenceListTagValue.tag === "n" && BlackSentenceListTagValue.word.length > 1) {
               BlackSentenceListTagArrayNoun.push(BlackSentenceListTagValue.word);
             }
             //Verb and word length > 1
-            if (BlackSentenceListTagValue.tag == "v" && BlackSentenceListTagValue.word.length > 1) {
+            if (BlackSentenceListTagValue.tag === "v" && BlackSentenceListTagValue.word.length > 1) {
               BlackSentenceListTagArrayVerb.push(BlackSentenceListTagValue.word);
             }
           });
@@ -64,34 +67,26 @@ const CombinationReplaceAll = () => {
           // 只替換兩個陣列長度一樣的
           if (
             BlackSentenceListTagArrayNoun.length === SamsungSentenceNoun[i].length &&
-            BlackSentenceListTagArrayVerb.length == SamsungSentenceVerb[i].length
+            BlackSentenceListTagArrayVerb.length === SamsungSentenceVerb[i].length
           ) {
             //replace Noun
-            const replaceNoun = replaceCumulative(
-              BlackValue.Sentence,
-              BlackSentenceListTagArrayNoun,
-              SamsungSentenceNoun[i],
-              "n"
-            );
-
+            const replaceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, SamsungSentenceNoun[i], "n");
             //replace Verb
             const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
 
-            console.log(replaceVerb);
-
-            // console.log(
-            //   "BlackCat n=",
-            //   BlackSentenceListTagArrayNoun.toString(),
-            //   " v=",
-            //   BlackSentenceListTagArrayVerb.toString(),
-            //   "\nSamsung  n=",
-            //   SamsungSentenceNoun[i].toString(),
-            //   " v=",
-            //   SamsungSentenceVerb[i].toString(),
-            //   "\n替換後句子=",
-            //   replaceVerb,
-            //   "\n"
-            // );
+            console.log(
+              "BlackCat n=",
+              BlackSentenceListTagArrayNoun.toString(),
+              " v=",
+              BlackSentenceListTagArrayVerb.toString(),
+              "\nSamsung  n=",
+              SamsungSentenceNoun[i].toString(),
+              " v=",
+              SamsungSentenceVerb[i].toString(),
+              "\n替換後句子=",
+              replaceVerb,
+              "\n"
+            );
 
             // fs.appendFile(
             //   "./file/output/replaceSentence.txt",
@@ -234,7 +229,7 @@ const CalculationWordDistance = () => {
   });
 };
 
-//CombinationReplaceAll();
+CombinationReplaceAll();
 
 //SearchSimilarSentences();
 

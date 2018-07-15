@@ -60,9 +60,12 @@ const CombinationReplaceAll = () => {
           });
 
           //replace  | total index=3054
-          const i = 1200;
+          const i = 100;
           // 只替換兩個陣列長度一樣的
-          if (BlackSentenceListTagArrayNoun.length === SamsungSentenceNoun[i].length) {
+          if (
+            BlackSentenceListTagArrayNoun.length === SamsungSentenceNoun[i].length &&
+            BlackSentenceListTagArrayVerb.length == SamsungSentenceVerb[i].length
+          ) {
             //replace Noun
             const replaceNoun = replaceCumulative(
               BlackValue.Sentence,
@@ -74,21 +77,21 @@ const CombinationReplaceAll = () => {
             //replace Verb
             const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
 
-            console.log(
-              "BlackCat n=",
-              BlackSentenceListTagArrayNoun.toString(),
-              " v=",
-              BlackSentenceListTagArrayVerb.toString(),
-              "\nSamsung  n=",
-              SamsungSentenceNoun[i].toString(),
-              " v=",
-              SamsungSentenceVerb[i].toString(),
-              "\n黑貓原句子=",
-              BlackValue.Sentence,
-              "\n替換後句子=",
-              replaceVerb,
-              "\n"
-            );
+            console.log(replaceVerb);
+
+            // console.log(
+            //   "BlackCat n=",
+            //   BlackSentenceListTagArrayNoun.toString(),
+            //   " v=",
+            //   BlackSentenceListTagArrayVerb.toString(),
+            //   "\nSamsung  n=",
+            //   SamsungSentenceNoun[i].toString(),
+            //   " v=",
+            //   SamsungSentenceVerb[i].toString(),
+            //   "\n替換後句子=",
+            //   replaceVerb,
+            //   "\n"
+            // );
 
             // fs.appendFile(
             //   "./file/output/replaceSentence.txt",
@@ -110,7 +113,7 @@ const CombinationReplaceAll = () => {
             //   }
             // );
 
-            // fs.appendFile("./file/output/replaceSentence1.txt", "\n" + replaceVerb, err => {
+            // fs.appendFile("./file/output/replaceSentence2.txt", "\n" + replaceVerb, err => {
             //   if (err) throw err;
             // });
           }
@@ -231,7 +234,7 @@ const CalculationWordDistance = () => {
   });
 };
 
-CombinationReplaceAll();
+//CombinationReplaceAll();
 
 //SearchSimilarSentences();
 

@@ -1,8 +1,11 @@
 import nodejieba from "nodejieba";
-nodejieba.load({ dict: "./jieba/dict.txt" });
+
+// user Dict 需要先cut在tag
+nodejieba.load({ dict: "./jieba/dict.txt", userDict: "./jieba/userdict.utf8" });
 
 // file process
 import fs from "fs";
+
 //繁轉簡  tify=轉成正體中文
 import { tify, sify } from "chinese-conv";
 
@@ -26,8 +29,10 @@ const CombinationReplaceAll = () => {
         //Samsung sentence 斷詞取 Noun
         const SamsungSentenceNoun = SamsungSentenceList.map(item => {
           const total = [];
-          nodejieba.tag(item.Sentence).map(value => {
-            if (value.tag === "n") total.push(value.word);
+          nodejieba.cut(item.Sentence).map(CutValue => {
+            nodejieba.tag(CutValue).map(value => {
+              if (value.tag === "n") total.push(value.word);
+            });
           });
           const result = [...new Set(total)];
           return result;
@@ -36,8 +41,10 @@ const CombinationReplaceAll = () => {
         //Samsung sentence 斷詞取 Verb
         const SamsungSentenceVerb = SamsungSentenceList.map(item => {
           const total = [];
-          nodejieba.tag(item.Sentence).map(value => {
-            if (value.tag === "v") total.push(value.word);
+          nodejieba.cut(item.Sentence).map(CutValue => {
+            nodejieba.tag(CutValue).map(value => {
+              if (value.tag === "v") total.push(value.word);
+            });
           });
           const result = [...new Set(total)];
           return result;
@@ -51,15 +58,17 @@ const CombinationReplaceAll = () => {
           const BlackSentenceListTagArrayNoun = [];
           const BlackSentenceListTagArrayVerb = [];
 
-          nodejieba.tag(BlackSentence).map(BlackSentenceListTagValue => {
-            //Noun and word length > 1
-            if (BlackSentenceListTagValue.tag === "n" && BlackSentenceListTagValue.word.length > 1) {
-              BlackSentenceListTagArrayNoun.push(BlackSentenceListTagValue.word);
-            }
-            //Verb and word length > 1
-            if (BlackSentenceListTagValue.tag === "v" && BlackSentenceListTagValue.word.length > 1) {
-              BlackSentenceListTagArrayVerb.push(BlackSentenceListTagValue.word);
-            }
+          nodejieba.cut(BlackSentence).map(CutValue => {
+            nodejieba.tag(CutValue).map(BlackSentenceListTagValue => {
+              //Noun and word length > 1
+              if (BlackSentenceListTagValue.tag === "n" && BlackSentenceListTagValue.word.length > 1) {
+                BlackSentenceListTagArrayNoun.push(BlackSentenceListTagValue.word);
+              }
+              //Verb and word length > 1
+              if (BlackSentenceListTagValue.tag === "v" && BlackSentenceListTagValue.word.length > 1) {
+                BlackSentenceListTagArrayVerb.push(BlackSentenceListTagValue.word);
+              }
+            });
           });
 
           //replace  | total index=3054
@@ -171,14 +180,16 @@ const SearchSimilarSentences = () => {
 
         //-------- 詞性組合方法 --------//
         const PartOfSpeechCombinationList = [];
-        synonyms.tag(SentenceValue).map(SentenceTagItem => {
-          if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
-            PartOfSpeechCombinationList.push({ sentence: SentenceValue, tag: SentenceTagItem.tag });
-          }
+        nodejieba.cut(SentenceValue).map(CutValue => {
+          nodejieba.tag(CutValue).map(SentenceTagItem => {
+            if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
+              PartOfSpeechCombinationList.push({ sentence: SentenceValue, tag: SentenceTagItem.tag });
+            }
+          });
         });
 
         DeduplicationMergedObject2(PartOfSpeechCombinationList).map(POSCombinationValue => {
-          const PartOfSpeechCombination = "nvnvvnv";
+          const PartOfSpeechCombination = "nvn";
           const POSCombination = POSCombinationValue.tag.toString().replace(new RegExp(",", "g"), "");
           if (PartOfSpeechCombination === POSCombination) {
             console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
@@ -197,18 +208,22 @@ const CalculationWordDistance = () => {
 
     //句1作斷詞後只取 n v
     const SentenceTagListOne = [];
-    synonyms.tag(SentenceList[50].SearchSentence).map(SentenceTagValueOne => {
-      if (SentenceTagValueOne.tag == "n" || SentenceTagValueOne.tag == "v") {
-        SentenceTagListOne.push(SentenceTagValueOne);
-      }
+    nodejieba.cut(SentenceList[50].SearchSentence).map(CutValue => {
+      nodejieba.tag(CutValue).map(SentenceTagValueOne => {
+        if (SentenceTagValueOne.tag == "n" || SentenceTagValueOne.tag == "v") {
+          SentenceTagListOne.push(SentenceTagValueOne);
+        }
+      });
     });
 
     // //句2作斷詞後只取 n v
     const SentenceTagListTwo = [];
-    synonyms.tag(SentenceList[50].SimilaritySentence).map(SentenceTagValueTwo => {
-      if (SentenceTagValueTwo.tag == "n" || SentenceTagValueTwo.tag == "v") {
-        SentenceTagListTwo.push(SentenceTagValueTwo);
-      }
+    nodejieba.cut(SentenceList[50].SimilaritySentence).map(CutValue => {
+      nodejieba.tag(CutValue).map(SentenceTagValueTwo => {
+        if (SentenceTagValueTwo.tag == "n" || SentenceTagValueTwo.tag == "v") {
+          SentenceTagListTwo.push(SentenceTagValueTwo);
+        }
+      });
     });
 
     SentenceTagListOne.map(SentenceValueOne => {
@@ -229,7 +244,7 @@ const CalculationWordDistance = () => {
   });
 };
 
-CombinationReplaceAll();
+//CombinationReplaceAll();
 
 //SearchSimilarSentences();
 

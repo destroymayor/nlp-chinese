@@ -1,20 +1,35 @@
 import nodejieba from "nodejieba";
 
 // user Dict 需要先cut在tag
-nodejieba.load({ dict: "./jieba/dict.txt", userDict: "./jieba/userdict.utf8" });
+nodejieba.load({
+  dict: "./jieba/dict.txt",
+  userDict: "./jieba/userdict.utf8"
+});
 
 // file process
 import fs from "fs";
 
 //繁轉簡  tify=轉成正體中文
-import { tify, sify } from "chinese-conv";
+import {
+  tify,
+  sify
+} from "chinese-conv";
 
-import { replaceCumulative, removeDuplicates, DeduplicationMergedObject2 } from "./src/ArrayProcess";
-import { levenshteinDistance, similarity } from "./src/Calculation";
+import {
+  replaceCumulative,
+  removeDuplicates,
+  DeduplicationMergedObject2
+} from "./src/ArrayProcess";
+import {
+  levenshteinDistance,
+  similarity
+} from "./src/Calculation";
 
-import { DictionaryIntegration } from "./src/dictionaryIntegration/DictionaryIntegration";
+import {
+  DictionaryIntegration
+} from "./src/dictionaryIntegration/DictionaryIntegration";
 
-import synonyms from "node-synonyms";
+//import synonyms from "node-synonyms";
 
 //replace all Noun or Verb
 const CombinationReplaceAll = () => {
@@ -186,16 +201,19 @@ const SearchSimilarSentences = () => {
         SearchSentenceList.map((SearchSentenceListValue, SearchSentenceIndex, SearchSentenceListArray) => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
           //判斷相似度
-          if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
-            // console.log(
-            //   "相似度=",
-            //   similarity(SentenceValue, SearchSentenceListValue).toFixed(3),
-            //   "輸入句= ",
-            //   SearchSentenceListValue,
-            //   "=> 相似句= ",
-            //   SentenceValue
-            // );
-            SearchSentenceResultList.push({ SearchSentence: SearchSentenceListValue, SimilaritySentence: SentenceValue });
+          if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.95) {
+            console.log(
+              "相似度=",
+              similarity(SentenceValue, SearchSentenceListValue).toFixed(3),
+              "輸入句= ",
+              SearchSentenceListValue,
+              "=> 相似句= ",
+              SentenceValue
+            );
+            // SearchSentenceResultList.push({
+            //   SearchSentence: SearchSentenceListValue,
+            //   SimilaritySentence: SentenceValue
+            // });
             // fs.writeFile("./file/output/SearchSentence.json", JSON.stringify(SearchSentenceResultList), err => {
             //   if (err) throw err;
             // });
@@ -215,7 +233,10 @@ const SearchSimilarSentences = () => {
         nodejieba.cut(SentenceValue).map(CutValue => {
           nodejieba.tag(CutValue).map(SentenceTagItem => {
             if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
-              PartOfSpeechCombinationList.push({ sentence: SentenceValue, tag: SentenceTagItem.tag });
+              PartOfSpeechCombinationList.push({
+                sentence: SentenceValue,
+                tag: SentenceTagItem.tag
+              });
             }
           });
         });
@@ -224,7 +245,7 @@ const SearchSimilarSentences = () => {
           const PartOfSpeechCombination = "nvnnv";
           const POSCombination = POSCombinationValue.tag.toString().replace(new RegExp(",", "g"), "");
           if (PartOfSpeechCombination === POSCombination) {
-            console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
+            //console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
           }
         });
         //---------------------------//
@@ -265,13 +286,12 @@ const CalculationWordDistance = () => {
     SentenceTagListOne.map(SentenceValueOne => {
       SentenceTagListTwo.map(SentenceValueTwo => {
         synonyms.compare(sify(SentenceValueOne.word), sify(SentenceValueTwo.word)).then(similarity => {
-          // console.log("相似度=>", similarity.toFixed(3), SentenceValueOne.word, SentenceValueTwo.word);
           if (SentenceValueOne.word !== SentenceValueTwo.word && similarity.toFixed(3) >= 0.5) {
             console.log(
               "\n句一=>",
-              SentenceList[50].SearchSentence,
+              Sentence1,
               "\n句二=>",
-              SentenceList[50].SimilaritySentence,
+              Sentence2,
               "\nkeyword相似度=>",
               similarity.toFixed(3),
               SentenceValueOne.word,
@@ -288,6 +308,6 @@ const CalculationWordDistance = () => {
 
 //DownsizeReplaceSentence();
 
-//SearchSimilarSentences();
+SearchSimilarSentences();
 
-CalculationWordDistance();
+//CalculationWordDistance();

@@ -1,41 +1,5 @@
 import Fastlevenshtein from "fast-levenshtein";
 
-// 兩個字串相似度 levenshtein
-const similarity = (one, two) => {
-  if (!one || !two || !one.length || !two.length) return 0;
-  if (one === two) return 1;
-  // levenshtein 編輯距離長度
-  let d = Fastlevenshtein.get(one, two);
-  // 兩個字串取最大值
-  let longest = Math.max(one.length, two.length);
-  return (longest - d) / longest;
-};
-
-const lcsLength = (s1, s2) => {
-  const s1_length = s1.length;
-  const s2_length = s2.length;
-  const x = s1.split("");
-  const y = s2.split("");
-  const c = Array(s1_length + 1).fill(Array(s2_length + 1).fill(0));
-
-  for (let i = 1; i <= s1_length; i++) {
-    for (let j = 1; j <= s2_length; j++) {
-      c[i][j] = x[i - 1] === y[j - 1] ? c[i - 1][j - 1] + 1 : Math.max(c[i][j - 1], c[i - 1][j]);
-    }
-  }
-  return c[s1_length][s2_length];
-};
-
-// 兩個字串相似度 Longest Common Subsequence
-const metricLcs = (s1, s2) => {
-  if (typeof s1 !== "string" || typeof s1 !== "string") return NaN;
-  if (s1 === s2) return 1;
-
-  const mlen = Math.max(s1.length, s2.length);
-  if (mlen === 0) return 1;
-  return lcsLength(s1, s2) / mlen;
-};
-
 // 平均與變異值
 const getMeanAndVar = arr => {
   function getVariance(arr, mean) {
@@ -252,6 +216,42 @@ const shortestCommonSupersequence = (set1, set2) => {
   }
 
   return supersequence;
+};
+
+// 兩個字串相似度 levenshtein
+const similarity = (one, two) => {
+  if (!one || !two || !one.length || !two.length) return 0;
+  if (one === two) return 1;
+  // levenshtein 編輯距離長度
+  let d = Fastlevenshtein.get(one, two);
+  // 兩個字串取最大值
+  let longest = Math.max(one.length, two.length);
+  return (longest - d) / longest;
+};
+
+const lcsLength = (s1, s2) => {
+  const s1_length = s1.length;
+  const s2_length = s2.length;
+  const x = s1.split("");
+  const y = s2.split("");
+  const c = Array(s1_length + 1).fill(Array(s2_length + 1).fill(0));
+
+  for (let i = 1; i <= s1_length; i++) {
+    for (let j = 1; j <= s2_length; j++) {
+      c[i][j] = x[i - 1] === y[j - 1] ? c[i - 1][j - 1] + 1 : Math.max(c[i][j - 1], c[i - 1][j]);
+    }
+  }
+  return c[s1_length][s2_length];
+};
+
+// 兩個字串相似度 Longest Common Subsequence
+const metricLcs = (s1, s2) => {
+  if (typeof s1 !== "string" || typeof s1 !== "string") return NaN;
+  if (s1 === s2) return 1;
+
+  const mlen = Math.max(s1.length, s2.length);
+  if (mlen === 0) return 1;
+  return lcsLength(s1, s2) / mlen;
 };
 
 export {

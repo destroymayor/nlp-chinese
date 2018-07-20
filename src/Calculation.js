@@ -26,14 +26,13 @@ const getMeanAndVar = arr => {
   return ["Mean:", res.mean.toFixed(2), "Variance:", res.variance.toFixed(2)].join(" ");
 };
 
-
 //levenshtein 距離
 const levenshteinDistance = (one, two) => {
   const OneList = [];
   const OneListOther = [];
   nodejieba.cut(one).map(CutValue => {
     nodejieba.tag(CutValue).map(value => {
-      if (value.tag === 'n' || value.tag === 'v') {
+      if (value.tag === 'n') {
         OneList.push(value.word = '1')
       } else {
         OneListOther.push(value.word.toString())
@@ -45,7 +44,7 @@ const levenshteinDistance = (one, two) => {
   const TwoListOther = [];
   nodejieba.cut(two).map(CutValue => {
     nodejieba.tag(CutValue).map(value => {
-      if (value.tag === 'n' || value.tag === 'v') {
+      if (value.tag === 'n') {
         TwoList.push(value.word = '1')
       } else {
         TwoListOther.push(value.word.toString())

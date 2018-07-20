@@ -3,7 +3,7 @@ import nodejieba from "nodejieba";
 // user Dict 需要先cut在tag
 nodejieba.load({
   dict: "./jieba/dict.txt",
-  userDict: "./jieba/userdict.utf8"
+  userDict: './jieba/userdict.utf8'
 });
 
 // file process
@@ -89,56 +89,60 @@ const CombinationReplaceAll = () => {
           });
 
           //replace  | total index=3026
-          const i = 100;
+          // const i = 100;
           // 只替換兩個陣列長度一樣的
-          //for (let i = 0; i < 3026; i++) {
-          if (
-            BlackSentenceListTagArrayNoun.length === SamsungSentenceNoun[i].length &&
-            BlackSentenceListTagArrayVerb.length === SamsungSentenceVerb[i].length
-          ) {
-            //replace Noun
-            const replaceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, SamsungSentenceNoun[i], "n");
-            //replace Verb
-            const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
+          for (let i = 0; i < 3026; i++) {
+            if (
+              BlackSentenceListTagArrayNoun.length === SamsungSentenceNoun[i].length &&
+              BlackSentenceListTagArrayVerb.length === SamsungSentenceVerb[i].length
+            ) {
+              //replace Noun
+              const replaceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, SamsungSentenceNoun[i], "n");
+              //replace Verb
+              const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
 
-            console.log(
-              "BlackCat n=",
-              BlackSentenceListTagArrayNoun.toString(),
-              " v=",
-              BlackSentenceListTagArrayVerb.toString(),
-              "\nSamsung  n=",
-              SamsungSentenceNoun[i].toString(),
-              " v=",
-              SamsungSentenceVerb[i].toString(),
-              "\n替換後句子=",
-              replaceVerb,
-              "\n"
-            );
+              console.log(
+                "BlackCat n=",
+                BlackSentenceListTagArrayNoun.toString(),
+                " v=",
+                BlackSentenceListTagArrayVerb.toString(),
+                "\nSamsung  n=",
+                SamsungSentenceNoun[i].toString(),
+                " v=",
+                SamsungSentenceVerb[i].toString(),
+                "\n替換後句子=",
+                replaceVerb,
+                "\n"
+              );
 
-            // fs.appendFile(
-            //   "./file/output/replaceSentence.txt",
-            //   "\nBlackCat n=" +
-            //     BlackSentenceListTagArrayNoun.toString() +
-            //     " v=" +
-            //     BlackSentenceListTagArrayVerb.toString() +
-            //     "\nSamsung  n=" +
-            //     SamsungSentenceNoun[i].toString() +
-            //     " v=" +
-            //     SamsungSentenceVerb[i].toString() +
-            //     "\n黑貓原句子=" +
-            //     BlackValue.Sentence +
-            //     "\n替換後句子=" +
-            //     replaceVerb +
-            //     "\n",
-            //   err => {
-            //     if (err) throw err;
-            //   }
-            // );
+              // fs.appendFile(
+              //   "./file/output/replaceSentence.txt",
+              //   "\nBlackCat n=" +
+              //     BlackSentenceListTagArrayNoun.toString() +
+              //     " v=" +
+              //     BlackSentenceListTagArrayVerb.toString() +
+              //     "\nSamsung  n=" +
+              //     SamsungSentenceNoun[i].toString() +
+              //     " v=" +
+              //     SamsungSentenceVerb[i].toString() +
+              //     "\n黑貓原句子=" +
+              //     BlackValue.Sentence +
+              //     "\n替換後句子=" +
+              //     replaceVerb +
+              //     "\n",
+              //   err => {
+              //     if (err) throw err;
+              //   }
+              // );
 
-            // fs.appendFile("./file/output/replaceSentence.txt", "\n" + replaceVerb, err => {
-            //   if (err) throw err;
-            // });
-            // }
+              // fs.appendFile("./file/output/replaceSentence.txt", "\n" + replaceVerb, err => {
+              //   if (err) throw err;
+              // });
+
+              fs.appendFile('./file/output/AllReplace1.json', '"' + replaceVerb + '",', err => {
+                if (err) throw err;
+              })
+            }
           }
         });
       }
@@ -159,7 +163,7 @@ const DownsizeReplaceSentence = () => {
   //   });
   // });
 
-  fs.readFile("./file/output/replaceSentenceList.json", "utf-8", (err, data) => {
+  fs.readFile("./file/output/AllReplace1.json", "utf-8", (err, data) => {
     if (err) throw err;
     const reduceArray = [...new Set(JSON.parse(data))];
     const filterArray = reduceArray.sort((after, before) => {
@@ -167,9 +171,14 @@ const DownsizeReplaceSentence = () => {
     });
 
     filterArray.map(item => {
-      fs.appendFile("./file/output/replaceSentenceList.txt", item + "\n", error => {
-        if (error) throw error;
-      });
+      // fs.appendFile("./file/output/replaceSentenceList.txt", item + "\n", error => {
+      //   if (error) throw error;
+      // });
+
+
+      // fs.appendFile("./file/output/replaceSentenceList.json", '"' + item + '",', error => {
+      //   if (error) throw error;
+      // });
     });
   });
 };
@@ -201,7 +210,7 @@ const SearchSimilarSentences = () => {
         SearchSentenceList.map((SearchSentenceListValue, SearchSentenceIndex, SearchSentenceListArray) => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
           //判斷相似度
-          if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.95) {
+          if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.8) {
             console.log(
               "相似度=",
               similarity(SentenceValue, SearchSentenceListValue).toFixed(3),
@@ -210,6 +219,7 @@ const SearchSimilarSentences = () => {
               "=> 相似句= ",
               SentenceValue
             );
+
             // SearchSentenceResultList.push({
             //   SearchSentence: SearchSentenceListValue,
             //   SimilaritySentence: SentenceValue

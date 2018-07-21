@@ -150,6 +150,60 @@ const CombinationReplaceAll = () => {
   });
 };
 
+const KeywordCombinationReplaceAll = () => {
+  fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
+    if (BlackSentenceError) throw BlackSentenceError;
+    const BlackSentenceList = JSON.parse(BlackSentenceData);
+    fs.readFile("./file/Samsung/Samsung_GlobalCombination.json", "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
+      if (SamsungSentenceError) throw SamsungSentenceError;
+      const SamsungSentenceList = JSON.parse(SamsungSentenceData);
+
+      // iteration all sentence
+      BlackSentenceList.map(BlackValue => {
+        const BlackSentence = BlackValue.Sentence;
+        //Noun and Verb list
+        const BlackSentenceListTagArrayNoun = [];
+        const BlackSentenceListTagArrayVerb = [];
+
+        nodejieba.cut(BlackSentence).map(CutValue => {
+          nodejieba.tag(CutValue).map(BlackSentenceListTagValue => {
+            //Noun and word length > 1
+            if (BlackSentenceListTagValue.tag === "n" && BlackSentenceListTagValue.word.length > 1) {
+              BlackSentenceListTagArrayNoun.push(BlackSentenceListTagValue.word);
+            }
+            //Verb and word length > 1
+            if (BlackSentenceListTagValue.tag === "v" && BlackSentenceListTagValue.word.length > 1) {
+              BlackSentenceListTagArrayVerb.push(BlackSentenceListTagValue.word);
+            }
+          });
+        });
+
+        Object.keys(SamsungSentenceList).map((item) => {
+          SamsungSentenceList[item].map(value => {
+            if (BlackSentenceListTagArrayNoun.length === 1 && BlackSentenceListTagArrayVerb.length === 1) {
+              if (value.POS_n) {
+                const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, [value.POS_n],
+                  'n');
+                if (value.POS_v) {
+                  const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagArrayVerb, [value.POS_v],
+                    'v');
+                  console.log(BlackSentence, replaceSentenceVerb)
+                  // fs.appendFile('./file/output/replaceSentenceSamsungGlobal.txt', 'BlackCat原句子=> ' + BlackSentence + ' ,  替換後=>' + replaceSentenceVerb + "\n", err => {
+                  //   if (err) throw err;
+                  // })
+                }
+              }
+            }
+          })
+
+        })
+
+
+      });
+    });
+  });
+};
+
 const DownsizeReplaceSentence = () => {
   //讀txt 寫入json
   // const lineReader = require("readline").createInterface({
@@ -316,8 +370,10 @@ const CalculationWordDistance = () => {
 
 //CombinationReplaceAll();
 
+//KeywordCombinationReplaceAll();
+
 //DownsizeReplaceSentence();
 
-SearchSimilarSentences();
+//SearchSimilarSentences();
 
 //CalculationWordDistance();

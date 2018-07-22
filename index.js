@@ -3,7 +3,7 @@ import nodejieba from "nodejieba";
 // user Dict 需要先cut在tag
 nodejieba.load({
   dict: "./jieba/dict.txt",
-  userDict: './jieba/userdict.utf8'
+  userDict: "./jieba/userdict.utf8"
 });
 
 // file process
@@ -29,7 +29,7 @@ import {
   DictionaryIntegration
 } from "./src/dictionaryIntegration/DictionaryIntegration";
 
-//import synonyms from "node-synonyms";
+// import synonyms from "node-synonyms";
 
 //replace all Noun or Verb
 const CombinationReplaceAll = () => {
@@ -139,9 +139,9 @@ const CombinationReplaceAll = () => {
               //   if (err) throw err;
               // });
 
-              fs.appendFile('./file/output/AllReplace1.json', '"' + replaceVerb + '",', err => {
+              fs.appendFile("./file/output/AllReplace1.json", '"' + replaceVerb + '",', err => {
                 if (err) throw err;
-              })
+              });
             }
           }
         });
@@ -154,7 +154,7 @@ const KeywordCombinationReplaceAll = () => {
   fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
     if (BlackSentenceError) throw BlackSentenceError;
     const BlackSentenceList = JSON.parse(BlackSentenceData);
-    fs.readFile("./file/Samsung/Samsung_GlobalCombination.json", "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
+    fs.readFile("./file/Samsung/Samsung_LocalCombination.json", "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
       if (SamsungSentenceError) throw SamsungSentenceError;
       const SamsungSentenceList = JSON.parse(SamsungSentenceData);
 
@@ -178,27 +178,33 @@ const KeywordCombinationReplaceAll = () => {
           });
         });
 
-        Object.keys(SamsungSentenceList).map((item) => {
+        Object.keys(SamsungSentenceList).map(item => {
           SamsungSentenceList[item].map(value => {
             if (BlackSentenceListTagArrayNoun.length === 1 && BlackSentenceListTagArrayVerb.length === 1) {
               if (value.POS_n) {
-                const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, [value.POS_n],
-                  'n');
+                const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, [value.POS_n], "n");
                 if (value.POS_v) {
-                  const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagArrayVerb, [value.POS_v],
-                    'v');
-                  console.log(BlackSentence, replaceSentenceVerb)
+                  const replaceSentenceVerb = replaceCumulative(
+                    replaceSentenceNoun,
+                    BlackSentenceListTagArrayVerb, [value.POS_v],
+                    "v"
+                  );
+                  console.log(BlackSentence, replaceSentenceVerb);
                   // fs.appendFile('./file/output/replaceSentenceSamsungGlobal.txt', 'BlackCat原句子=> ' + BlackSentence + ' ,  替換後=>' + replaceSentenceVerb + "\n", err => {
                   //   if (err) throw err;
                   // })
+                  fs.appendFileSync(
+                    "./file/output/replaceSentenceSamsungLocal.txt",
+                    "BlackCat原句子=> " + BlackSentence + " ,  替換後=>" + replaceSentenceVerb + "\n",
+                    err => {
+                      if (err) throw err;
+                    }
+                  );
                 }
               }
             }
-          })
-
-        })
-
-
+          });
+        });
       });
     });
   });
@@ -228,8 +234,6 @@ const DownsizeReplaceSentence = () => {
       // fs.appendFile("./file/output/replaceSentenceList.txt", item + "\n", error => {
       //   if (error) throw error;
       // });
-
-
       // fs.appendFile("./file/output/replaceSentenceList.json", '"' + item + '",', error => {
       //   if (error) throw error;
       // });

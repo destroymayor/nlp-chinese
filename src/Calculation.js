@@ -1,10 +1,5 @@
 import nodejieba from "nodejieba";
 
-// user Dict 需要先cut在tag
-nodejieba.load({
-  dict: "./jieba/dict.txt"
-});
-
 // 平均與變異值
 const getMeanAndVar = arr => {
   function getVariance(arr, mean) {

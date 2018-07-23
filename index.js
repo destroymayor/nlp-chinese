@@ -1,17 +1,14 @@
 import nodejieba from "nodejieba";
 
-// user Dict 需要先cut在tag
 nodejieba.load({
   dict: "./jieba/dict.txt",
   userDict: "./jieba/userdict.utf8"
 });
 
-// file process
 import fs from "fs";
 
-//繁轉簡  tify=轉成正體中文
 import {
-  tify,
+  tify, //tify=轉成正體中文
   sify
 } from "chinese-conv";
 
@@ -20,8 +17,8 @@ import {
   removeDuplicates,
   DeduplicationMergedObject2
 } from "./src/ArrayProcess";
+
 import {
-  levenshteinDistance,
   similarity
 } from "./src/Calculation";
 
@@ -57,31 +54,33 @@ const KeywordCombinationReplaceAll = () => {
         });
 
         Object.keys(SamsungSentenceList).map(item => {
-          SamsungSentenceList[item].map(value => {
-            if (BlackSentenceListTagArrayNoun.length === 1 && BlackSentenceListTagArrayVerb.length === 1) {
-              //先替換名詞 且在特定詞頻內
-              if (value.count >= 10 && value.n) {
-                const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, [value.n], "n");
-                if (value.v) {
-                  const replaceSentenceVerb = replaceCumulative(
-                    replaceSentenceNoun,
-                    BlackSentenceListTagArrayVerb, [value.v],
-                    "v"
-                  );
+          if (SamsungSentenceList[item].length > 0) {
+            SamsungSentenceList[item].map(value => {
+              //判斷組合詞是否大於1
+              if (value.n !== undefined && value.v !== undefined) {
+                // 判斷black 與samsung 組合詞長度是否一樣
+                if (BlackSentenceListTagArrayNoun.length === value.n.length && BlackSentenceListTagArrayVerb.length === value.v.length) {
+                  //先替換名詞 且在特定詞頻內
+                  if (value.count >= 10 && value.n) {
+                    const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, [value.n], "n");
+                    if (value.v) {
+                      const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagArrayVerb, [value.v], "v");
 
-                  //console.log(BlackSentence, value.count, "替換後=>" + replaceSentenceVerb);
+                      console.log(BlackSentence, value.count, "替換後=>" + replaceSentenceVerb);
 
-                  // fs.appendFileSync(
-                  //   "./file/output/replaceSentenceSamsungLocal.txt",
-                  //   "BlackCat原句子=> " + BlackSentence + " | 出現頻率=>" + value.count + " | 替換後=> " + replaceSentenceVerb + "\n",
-                  //   err => {
-                  //     if (err) throw err;
-                  //   }
-                  // );
+                      // fs.appendFileSync(
+                      //   "./file/output/replaceSentenceSamsungLocal1.txt",
+                      //   "BlackCat原句子=> " + BlackSentence + " | 出現頻率=>" + value.count + " | 替換後=> " + replaceSentenceVerb + "\n",
+                      //   err => {
+                      //     if (err) throw err;
+                      //   }
+                      // );
+                    }
+                  }
                 }
               }
-            }
-          });
+            });
+          }
         });
       });
     });

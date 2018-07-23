@@ -31,137 +31,15 @@ import {
 
 // import synonyms from "node-synonyms";
 
-//replace all Noun or Verb
-const CombinationReplaceAll = () => {
-  fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
-    if (BlackSentenceError) throw BlackSentenceError;
-    const BlackSentenceList = JSON.parse(BlackSentenceData);
-    fs.readFile(
-      "./file/Samsung/Samsung_CombinationAppearsSentence.json",
-      "utf-8",
-      (SamsungSentenceError, SamsungSentenceData) => {
-        if (SamsungSentenceError) throw SamsungSentenceError;
-        const SamsungSentenceList = JSON.parse(SamsungSentenceData).map(item => item);
-
-        //Samsung sentence 斷詞取 Noun
-        const SamsungSentenceNoun = SamsungSentenceList.map(item => {
-          const total = [];
-          nodejieba.cut(item.Sentence).map(CutValue => {
-            nodejieba.tag(CutValue).map(value => {
-              if (value.tag === "n") total.push(value.word);
-            });
-          });
-          const result = [...new Set(total)];
-          return result;
-        });
-
-        //Samsung sentence 斷詞取 Verb
-        const SamsungSentenceVerb = SamsungSentenceList.map(item => {
-          const total = [];
-          nodejieba.cut(item.Sentence).map(CutValue => {
-            nodejieba.tag(CutValue).map(value => {
-              if (value.tag === "v") total.push(value.word);
-            });
-          });
-          const result = [...new Set(total)];
-          return result;
-        });
-
-        // iteration all sentence
-        BlackSentenceList.map(BlackValue => {
-          const BlackSentence = BlackValue.Sentence;
-
-          //Noun and Verb list
-          const BlackSentenceListTagArrayNoun = [];
-          const BlackSentenceListTagArrayVerb = [];
-
-          nodejieba.cut(BlackSentence).map(CutValue => {
-            nodejieba.tag(CutValue).map(BlackSentenceListTagValue => {
-              //Noun and word length > 1
-              if (BlackSentenceListTagValue.tag === "n" && BlackSentenceListTagValue.word.length > 1) {
-                BlackSentenceListTagArrayNoun.push(BlackSentenceListTagValue.word);
-              }
-              //Verb and word length > 1
-              if (BlackSentenceListTagValue.tag === "v" && BlackSentenceListTagValue.word.length > 1) {
-                BlackSentenceListTagArrayVerb.push(BlackSentenceListTagValue.word);
-              }
-            });
-          });
-
-          //replace  | total index=3026
-          // const i = 100;
-          // 只替換兩個陣列長度一樣的
-          for (let i = 0; i < 3026; i++) {
-            if (
-              BlackSentenceListTagArrayNoun.length === SamsungSentenceNoun[i].length &&
-              BlackSentenceListTagArrayVerb.length === SamsungSentenceVerb[i].length
-            ) {
-              //replace Noun
-              const replaceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, SamsungSentenceNoun[i], "n");
-              //replace Verb
-              const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
-
-              console.log(
-                "BlackCat n=",
-                BlackSentenceListTagArrayNoun.toString(),
-                " v=",
-                BlackSentenceListTagArrayVerb.toString(),
-                "\nSamsung  n=",
-                SamsungSentenceNoun[i].toString(),
-                " v=",
-                SamsungSentenceVerb[i].toString(),
-                "\n替換後句子=",
-                replaceVerb,
-                "\n"
-              );
-
-              // fs.appendFile(
-              //   "./file/output/replaceSentence.txt",
-              //   "\nBlackCat n=" +
-              //     BlackSentenceListTagArrayNoun.toString() +
-              //     " v=" +
-              //     BlackSentenceListTagArrayVerb.toString() +
-              //     "\nSamsung  n=" +
-              //     SamsungSentenceNoun[i].toString() +
-              //     " v=" +
-              //     SamsungSentenceVerb[i].toString() +
-              //     "\n黑貓原句子=" +
-              //     BlackValue.Sentence +
-              //     "\n替換後句子=" +
-              //     replaceVerb +
-              //     "\n",
-              //   err => {
-              //     if (err) throw err;
-              //   }
-              // );
-
-              // fs.appendFile("./file/output/replaceSentence.txt", "\n" + replaceVerb, err => {
-              //   if (err) throw err;
-              // });
-
-              fs.appendFile("./file/output/AllReplace1.json", '"' + replaceVerb + '",', err => {
-                if (err) throw err;
-              });
-            }
-          }
-        });
-      }
-    );
-  });
-};
-
 const KeywordCombinationReplaceAll = () => {
-  fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
-    if (BlackSentenceError) throw BlackSentenceError;
+  fs.readFile("./file/Black/BlackCat_ExtendedQuestion.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
     const BlackSentenceList = JSON.parse(BlackSentenceData);
     fs.readFile("./file/Samsung/Samsung_LocalCombination.json", "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
-      if (SamsungSentenceError) throw SamsungSentenceError;
       const SamsungSentenceList = JSON.parse(SamsungSentenceData);
 
       // iteration all sentence
-      BlackSentenceList.map(BlackValue => {
-        const BlackSentence = BlackValue.Sentence;
-        //Noun and Verb list
+      BlackSentenceList.map(BlackSentence => {
+        //BlackCat Noun and Verb list
         const BlackSentenceListTagArrayNoun = [];
         const BlackSentenceListTagArrayVerb = [];
 
@@ -181,62 +59,31 @@ const KeywordCombinationReplaceAll = () => {
         Object.keys(SamsungSentenceList).map(item => {
           SamsungSentenceList[item].map(value => {
             if (BlackSentenceListTagArrayNoun.length === 1 && BlackSentenceListTagArrayVerb.length === 1) {
-              if (value.POS_n) {
-                const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, [value.POS_n], "n");
-                if (value.POS_v) {
+              //先替換名詞 且在特定詞頻內
+              if (value.count >= 10 && value.n) {
+                const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, [value.n], "n");
+                if (value.v) {
                   const replaceSentenceVerb = replaceCumulative(
                     replaceSentenceNoun,
-                    BlackSentenceListTagArrayVerb, [value.POS_v],
+                    BlackSentenceListTagArrayVerb, [value.v],
                     "v"
                   );
-                  console.log(BlackSentence, replaceSentenceVerb);
-                  // fs.appendFile('./file/output/replaceSentenceSamsungGlobal.txt', 'BlackCat原句子=> ' + BlackSentence + ' ,  替換後=>' + replaceSentenceVerb + "\n", err => {
-                  //   if (err) throw err;
-                  // })
-                  fs.appendFileSync(
-                    "./file/output/replaceSentenceSamsungLocal.txt",
-                    "BlackCat原句子=> " + BlackSentence + " ,  替換後=>" + replaceSentenceVerb + "\n",
-                    err => {
-                      if (err) throw err;
-                    }
-                  );
+
+                  //console.log(BlackSentence, value.count, "替換後=>" + replaceSentenceVerb);
+
+                  // fs.appendFileSync(
+                  //   "./file/output/replaceSentenceSamsungLocal.txt",
+                  //   "BlackCat原句子=> " + BlackSentence + " | 出現頻率=>" + value.count + " | 替換後=> " + replaceSentenceVerb + "\n",
+                  //   err => {
+                  //     if (err) throw err;
+                  //   }
+                  // );
                 }
               }
             }
           });
         });
       });
-    });
-  });
-};
-
-const DownsizeReplaceSentence = () => {
-  //讀txt 寫入json
-  // const lineReader = require("readline").createInterface({
-  //   input: fs.createReadStream("./file/output/replaceSentence1.txt")
-  // });
-
-  // lineReader.on("line", line => {
-  //   console.log(line);
-  //   fs.appendFile("./file/output/replaceSentenceList.json", '"' + line + '",', err => {
-  //     if (err) throw err;
-  //   });
-  // });
-
-  fs.readFile("./file/output/AllReplace1.json", "utf-8", (err, data) => {
-    if (err) throw err;
-    const reduceArray = [...new Set(JSON.parse(data))];
-    const filterArray = reduceArray.sort((after, before) => {
-      return after.length - before.length;
-    });
-
-    filterArray.map(item => {
-      // fs.appendFile("./file/output/replaceSentenceList.txt", item + "\n", error => {
-      //   if (error) throw error;
-      // });
-      // fs.appendFile("./file/output/replaceSentenceList.json", '"' + item + '",', error => {
-      //   if (error) throw error;
-      // });
     });
   });
 };
@@ -282,6 +129,19 @@ const SearchSimilarSentences = () => {
             //   SearchSentence: SearchSentenceListValue,
             //   SimilaritySentence: SentenceValue
             // });
+            fs.appendFileSync(
+              "./file/output/SimilaritySentence.txt",
+              "相似度=" +
+              similarity(SentenceValue, SearchSentenceListValue).toFixed(3) +
+              " Samsung句子=> " +
+              SearchSentenceListValue +
+              " | 相似句=> " +
+              SentenceValue +
+              "\n",
+              err => {
+                if (err) throw err;
+              }
+            );
             // fs.writeFile("./file/output/SearchSentence.json", JSON.stringify(SearchSentenceResultList), err => {
             //   if (err) throw err;
             // });
@@ -374,9 +234,7 @@ const CalculationWordDistance = () => {
 
 //CombinationReplaceAll();
 
-//KeywordCombinationReplaceAll();
-
-//DownsizeReplaceSentence();
+KeywordCombinationReplaceAll();
 
 //SearchSimilarSentences();
 

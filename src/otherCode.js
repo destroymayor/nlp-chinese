@@ -187,7 +187,10 @@ const IncludesToKey = async () => {
       const keyList = [];
       for (let i = 0; i < 10; i++) {
         for (let j = 0; j < 10 - 1; j++) {
-          keyList.push({ key1: DataListN[i], key2: DataListV[j + 1] });
+          keyList.push({
+            key1: DataListN[i],
+            key2: DataListV[j + 1]
+          });
         }
       }
       fs.writeFile("./file/B_keyTwo_NandV.json", JSON.stringify(keyList));
@@ -250,9 +253,7 @@ const BlackCatCombinationReplace = async () => {
             if (value.match(new RegExp(BKeyword1 + ".*?" + BKeyword2))) {
               //第一次替換 output
               const NN_Once_Output = replaceCumulative(
-                value,
-                [BKeyword1, BKeyword2],
-                ["【" + SKeyword1 + "】", "【" + SKeyword2 + "】"]
+                value, [BKeyword1, BKeyword2], ["【" + SKeyword1 + "】", "【" + SKeyword2 + "】"]
               );
               const NN_Once = replaceCumulative(value, [BKeyword1, BKeyword2], [SKeyword1, SKeyword2]);
               //針對第一次替換後的句子做斷詞
@@ -396,9 +397,7 @@ const CombinationReplace = () => {
         if (BlackValue.Sentence.match(new RegExp(BlackValue.key1 + ".*?" + BlackValue.key2))) {
           //第一次替換(兩個keyword)
           const firstCombination_result = replaceCumulative(
-            BlackValue.Sentence,
-            [BlackValue.key1, BlackValue.key2],
-            ["【" + Stag1 + "】", "【" + Stag2 + "】"]
+            BlackValue.Sentence, [BlackValue.key1, BlackValue.key2], ["【" + Stag1 + "】", "【" + Stag2 + "】"]
           );
           const firstCombination = replaceCumulative(BlackValue.Sentence, [BlackValue.key1, BlackValue.key2], [Stag1, Stag2]);
 
@@ -463,6 +462,158 @@ const CombinationReplace = () => {
           });
         }
       });
+    });
+  });
+};
+
+//replace all Noun or Verb
+const CombinationReplaceAll = () => {
+  fs.readFile("./file/Black/Black_CombinationAppearsSentence.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
+    if (BlackSentenceError) throw BlackSentenceError;
+    const BlackSentenceList = JSON.parse(BlackSentenceData);
+    fs.readFile(
+      "./file/Samsung/Samsung_CombinationAppearsSentence.json",
+      "utf-8",
+      (SamsungSentenceError, SamsungSentenceData) => {
+        if (SamsungSentenceError) throw SamsungSentenceError;
+        const SamsungSentenceList = JSON.parse(SamsungSentenceData).map(item => item);
+
+        //Samsung sentence 斷詞取 Noun
+        const SamsungSentenceNoun = SamsungSentenceList.map(item => {
+          const total = [];
+          nodejieba.cut(item.Sentence).map(CutValue => {
+            nodejieba.tag(CutValue).map(value => {
+              if (value.tag === "n") total.push(value.word);
+            });
+          });
+          const result = [...new Set(total)];
+          return result;
+        });
+
+        //Samsung sentence 斷詞取 Verb
+        const SamsungSentenceVerb = SamsungSentenceList.map(item => {
+          const total = [];
+          nodejieba.cut(item.Sentence).map(CutValue => {
+            nodejieba.tag(CutValue).map(value => {
+              if (value.tag === "v") total.push(value.word);
+            });
+          });
+          const result = [...new Set(total)];
+          return result;
+        });
+
+        // iteration all sentence
+        BlackSentenceList.map(BlackValue => {
+          const BlackSentence = BlackValue.Sentence;
+
+          //Noun and Verb list
+          const BlackSentenceListTagArrayNoun = [];
+          const BlackSentenceListTagArrayVerb = [];
+
+          nodejieba.cut(BlackSentence).map(CutValue => {
+            nodejieba.tag(CutValue).map(BlackSentenceListTagValue => {
+              //Noun and word length > 1
+              if (BlackSentenceListTagValue.tag === "n" && BlackSentenceListTagValue.word.length > 1) {
+                BlackSentenceListTagArrayNoun.push(BlackSentenceListTagValue.word);
+              }
+              //Verb and word length > 1
+              if (BlackSentenceListTagValue.tag === "v" && BlackSentenceListTagValue.word.length > 1) {
+                BlackSentenceListTagArrayVerb.push(BlackSentenceListTagValue.word);
+              }
+            });
+          });
+
+          //replace  | total index=3026
+          // const i = 100;
+          // 只替換兩個陣列長度一樣的
+          for (let i = 0; i < 3026; i++) {
+            if (
+              BlackSentenceListTagArrayNoun.length === SamsungSentenceNoun[i].length &&
+              BlackSentenceListTagArrayVerb.length === SamsungSentenceVerb[i].length
+            ) {
+              //replace Noun
+              const replaceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, SamsungSentenceNoun[i], "n");
+              //replace Verb
+              const replaceVerb = replaceCumulative(replaceNoun, BlackSentenceListTagArrayVerb, SamsungSentenceVerb[i], "v");
+
+              console.log(
+                "BlackCat n=",
+                BlackSentenceListTagArrayNoun.toString(),
+                " v=",
+                BlackSentenceListTagArrayVerb.toString(),
+                "\nSamsung  n=",
+                SamsungSentenceNoun[i].toString(),
+                " v=",
+                SamsungSentenceVerb[i].toString(),
+                "\n替換後句子=",
+                replaceVerb,
+                "\n"
+              );
+
+              // fs.appendFile(
+              //   "./file/output/replaceSentence.txt",
+              //   "\nBlackCat n=" +
+              //     BlackSentenceListTagArrayNoun.toString() +
+              //     " v=" +
+              //     BlackSentenceListTagArrayVerb.toString() +
+              //     "\nSamsung  n=" +
+              //     SamsungSentenceNoun[i].toString() +
+              //     " v=" +
+              //     SamsungSentenceVerb[i].toString() +
+              //     "\n黑貓原句子=" +
+              //     BlackValue.Sentence +
+              //     "\n替換後句子=" +
+              //     replaceVerb +
+              //     "\n",
+              //   err => {
+              //     if (err) throw err;
+              //   }
+              // );
+
+              // fs.appendFile("./file/output/replaceSentence.txt", "\n" + replaceVerb, err => {
+              //   if (err) throw err;
+              // });
+
+              fs.appendFile("./file/output/AllReplace1.json", '"' + replaceVerb + '",', err => {
+                if (err) throw err;
+              });
+            }
+          }
+        });
+      }
+    );
+  });
+};
+
+
+//產生句txt整合到json
+const DownsizeReplaceSentence = () => {
+  //讀txt 寫入json
+  // const lineReader = require("readline").createInterface({
+  //   input: fs.createReadStream("./file/output/replaceSentence1.txt")
+  // });
+
+  // lineReader.on("line", line => {
+  //   console.log(line);
+  //   fs.appendFile("./file/output/replaceSentenceList.json", '"' + line + '",', err => {
+  //     if (err) throw err;
+  //   });
+  // });
+
+  fs.readFile("./file/output/AllReplace1.json", "utf-8", (err, data) => {
+    if (err) throw err;
+    const reduceArray = [...new Set(JSON.parse(data))];
+    const filterArray = reduceArray.sort((after, before) => {
+      return after.length - before.length;
+    });
+
+    filterArray.map(item => {
+      // fs.appendFile("./file/output/replaceSentenceList.txt", item + "\n", error => {
+      //   if (error) throw error;
+      // });
+      // fs.appendFile("./file/output/replaceSentenceList.json", '"' + item + '",', error => {
+      //   if (error) throw error;
+      // });
     });
   });
 };

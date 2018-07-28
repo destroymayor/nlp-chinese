@@ -6,14 +6,16 @@ nodejieba.load({
 });
 
 import fs from "fs";
-import {
-  replaceCumulative,
-} from "./src/ArrayProcess";
+
+const replaceCumulative = (str, find, replace) => {
+  for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), replace[i]);
+  return str;
+};
 
 const KeywordCombinationReplaceAll = () => {
-  fs.readFile("./file/Black/BlackCat_ExtendedQuestion.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
+  fs.readFile("./file/Black/Black_Test.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
     const BlackSentenceList = JSON.parse(BlackSentenceData);
-    fs.readFile("./file/Samsung/Samsung_LocalCombinationThree.json", "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
+    fs.readFile("./file/Samsung/Samsung_Test.json", "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
       const SamsungSentenceList = JSON.parse(SamsungSentenceData);
 
       // 迭代黑貓句子
@@ -38,19 +40,16 @@ const KeywordCombinationReplaceAll = () => {
         Object.keys(SamsungSentenceList).map(item => {
           SamsungSentenceList[item].filter(value => {
             //判斷組合詞是否大於1 && black 與samsung 組合詞長度是否一樣
-            if (value.n && value.v !== undefined && BlackSentenceListTagArrayNoun.length === value.n.length && BlackSentenceListTagArrayVerb.length === value.v.length) {
+            if (
+              value.n &&
+              value.v !== undefined &&
+              BlackSentenceListTagArrayNoun.length === value.n.length &&
+              BlackSentenceListTagArrayVerb.length === value.v.length
+            ) {
               //先替換名詞
-              const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, value.n, "n");
-              const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagArrayVerb, value.v, "v");
+              const replaceSentenceNoun = replaceCumulative(BlackSentence, BlackSentenceListTagArrayNoun, value.n);
+              const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagArrayVerb, value.v);
               console.log(BlackSentence, "替換後=>" + replaceSentenceVerb);
-
-              // fs.appendFileSync(
-              //   "./file/output/replaceSentenceSamsungLocalthree.txt",
-              //   "BlackCat原句子=> " + BlackSentence + " | 替換後=> " + replaceSentenceVerb + "\n",
-              //   err => {
-              //     if (err) throw err;
-              //   }
-              // );
             }
           });
         });

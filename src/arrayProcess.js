@@ -13,18 +13,9 @@ const replaceBulk = (str, findArray, replaceArray) => {
   return str;
 };
 
-const replaceCumulative = (str, find, replace, Vocabulary) => {
-  if (Vocabulary == "none") {
-    for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "【" + replace[i] + "】");
-  }
-  if (Vocabulary == "n") {
-    for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "【n" + replace[i] + "】");
-  }
-
-  if (Vocabulary == "v") {
-    for (let i = 0; i < find.length; i++) str = str.replace(new RegExp(find[i]), "(v" + replace[i] + ")");
-  }
-  return str;
+const replaceCumulative = (Sentence, FindList, ReplaceList) => {
+  for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), ReplaceList[i]);
+  return Sentence;
 };
 
 //陣列去重複 prop = 給予key name

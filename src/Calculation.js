@@ -27,10 +27,10 @@ const levenshteinDistance = (one, two) => {
   const OneListOther = [];
   nodejieba.cut(one).map(CutValue => {
     nodejieba.tag(CutValue).map(value => {
-      if (value.tag === 'n') {
-        OneList.push(value.word = '1')
+      if (value.tag === "n") {
+        OneList.push((value.word = "1"));
       } else {
-        OneListOther.push(value.word.toString())
+        OneListOther.push(value.word.toString());
       }
     });
   });
@@ -39,10 +39,10 @@ const levenshteinDistance = (one, two) => {
   const TwoListOther = [];
   nodejieba.cut(two).map(CutValue => {
     nodejieba.tag(CutValue).map(value => {
-      if (value.tag === 'n') {
-        TwoList.push(value.word = '1')
+      if (value.tag === "n") {
+        TwoList.push((value.word = "1"));
       } else {
-        TwoListOther.push(value.word.toString())
+        TwoListOther.push(value.word.toString());
       }
     });
   });
@@ -111,9 +111,4 @@ const metricLcs = (s1, s2) => {
   return lcsLength(s1, s2) / mlen;
 };
 
-export {
-  similarity,
-  metricLcs,
-  getMeanAndVar,
-  levenshteinDistance,
-};
+export { similarity, metricLcs, getMeanAndVar, levenshteinDistance };

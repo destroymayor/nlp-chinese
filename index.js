@@ -7,6 +7,7 @@ nodejieba.load({
 });
 
 import stringSimilarity from "string-similarity";
+import JaroWinkler from "jaro-winkler";
 
 //import synonyms from "node-synonyms";
 
@@ -15,7 +16,13 @@ import {
   sify
 } from "chinese-conv";
 
-import { similarity, DeduplicationMergedObject2 } from "./src/Calculation";
+import {
+  similarity,
+  longestCommonSubsequence,
+  levenshteinDistance,
+  metricLcs,
+  DeduplicationMergedObject2
+} from "./src/Calculation";
 import { replaceCumulative } from "./src/ArrayProcess";
 import { DictionaryIntegration } from "./src/dictionaryIntegration/DictionaryIntegration";
 
@@ -73,8 +80,6 @@ const KeywordCombinationReplaceAll = () => {
 const SearchSimilarSentences = () => {
   fs.readFile("./file/output/replaceSentenceList.json", "utf-8", (err, SentenceDataList) => {
     if (err) throw err;
-    //Similarity Sentence list
-    const SearchSentenceResultList = [];
     // Samsung Sentence list
     const SamsungSentenceListArray = [];
     //迭代所有Samsung句子
@@ -87,66 +92,69 @@ const SearchSimilarSentences = () => {
       //迭代語料庫所有句子
       JSON.parse(SentenceDataList).map((SentenceValue, SentenceIndex, SentenceValueArray) => {
         const SentenceValueArr = SentenceValueArray.map(item => item);
-
         //-------- levenshtein 句子對句子 --------//
         //Samsung sentence list
         const SearchSentenceList = [...new Set(SamsungSentenceListArray)];
         SearchSentenceList.map((SearchSentenceListValue, SearchSentenceIndex, SearchSentenceListArray) => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
+
+          //判斷相似度
+          if (JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.6) {
+            console.log(
+              "jaro winkler 相似度=> " +
+                JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
+                "  輸入句 => " +
+                SearchSentenceListValue +
+                "  相似句 => " +
+                SentenceValue +
+                "\n"
+            );
+            fs.appendFileSync(
+              "./file/output/JaroWinkler.txt",
+              "相似度=> " +
+                JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
+                "  輸入句 => " +
+                SearchSentenceListValue +
+                "  相似句 => " +
+                SentenceValue +
+                "\n",
+              err => {
+                if (err) throw err;
+              }
+            );
+          }
+
+          // dice
+
           if (
-            stringSimilarity.compareTwoStrings(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) > 0.2
+            stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.rating >= 0.2
           ) {
             console.log(
-              "相似度=",
-              stringSimilarity
-                .compareTwoStrings(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex])
-                .toFixed(3),
-              "輸入句= ",
+              "dice 相似度=> " +
+                stringSimilarity
+                  .findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr)
+                  .bestMatch.rating.toFixed(3),
+              stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr),
+              "\n  輸入句 => ",
               SearchSentenceListValue,
-              " 相似句=> ",
+              "\n  相似句 => ",
               SentenceValue
             );
           }
 
-          //判斷相似度
-          if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
-            // console.log(
-            //   "相似度=",
-            //   similarity(SentenceValue, SearchSentenceListValue).toFixed(3),
-            //   "輸入句= ",
-            //   SearchSentenceListValue,
-            //   " 相似句=> ",
-            //   SentenceValue
-            // );
-            // fs.appendFileSync(
-            //   "./file/output/SimilaritySentence.txt",
-            //   "相似度=" +
-            //     similarity(SentenceValue, SearchSentenceListValue).toFixed(3) +
-            //     "  輸入句=> " +
-            //     SearchSentenceListValue +
-            //     "  相似句=> " +
-            //     SentenceValue +
-            //     "\n",
-            //   err => {
-            //     if (err) throw err;
-            //   }
-            // );
-            // SearchSentenceResultList.push({
-            //   SearchSentence: SearchSentenceListValue,
-            //   SimilaritySentence: SentenceValue
-            // });
-            // fs.writeFile("./file/output/SearchSentence.json", JSON.stringify(SearchSentenceResultList), err => {
-            //   if (err) throw err;
-            // });
-          }
+          // levenshtein
+          // if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
+          //   console.log(
+          //     "levenshtein 相似度=> " +
+          //       similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
+          //       "  輸入句 => " +
+          //       SearchSentenceListValue +
+          //       "  相似句 => " +
+          //       SentenceValue +
+          //       "\n"
+          //   );
+          // }
         });
-        //---------------------------//
-
-        //-------- 詞組合方法 --------//
-        // const SearchWordCom = ["裝置", "可以", "傳輸線"];
-        // if (SentenceValue.match(new RegExp(SearchWordCom[0] + ".*?" + SearchWordCom[1] + ".*?" + SearchWordCom[2]))) {
-        //  // console.log("詞組合=[裝置, 可以, 傳輸線] =>", SentenceValue);
-        // }
         //---------------------------//
 
         //-------- 詞性組合方法 --------//
@@ -224,7 +232,22 @@ SearchSimilarSentences();
 
 //CalculationWordDistance();
 
-//console.log(lcs("啟動聯絡人應用程式並選擇您的個人資料", "圖示從早上選取到現在應用程式並選擇您"));
+// fs.readFile("./file/Black/BlackCat_QAList.json", "utf-8", (err, data) => {
+//   const list = JSON.parse(data);
 
-// console.log(stringSimilarity.compareTwoStrings("啟動聯絡人應用程式並選擇您的個人資料", "選取到現在應用程式並選擇您"));
-// console.log(stringSimilarity.findBestMatch("healed", ["edward", "sealed", "theatre"]));
+//   Object.keys(list).map(Item => {
+//     list["台灣大哥大配送資料修改方式"].map(WordValue => {
+//       const PartOfSpeechCombinationList = [];
+//       nodejieba.cut(WordValue).map(CutValue => {
+//         nodejieba.tag(CutValue).map(SentenceTagItem => {
+//           PartOfSpeechCombinationList.push(SentenceTagItem.tag);
+//         });
+//       });
+
+//       //console.log(PartOfSpeechCombinationList.toString().replace(new RegExp(",", "g"), ""));
+
+//       //  if (PartOfSpeechCombinationList.slice(-1)[0] == "v") {
+//       console.log(WordValue, PartOfSpeechCombinationList);
+//     });
+//   });
+// });

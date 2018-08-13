@@ -2,15 +2,15 @@ import fs from "fs";
 import nodejieba from "nodejieba";
 
 nodejieba.load({
-  dict: "./jieba/dict.txt",
-  userDict: "./jieba/userdict.utf8"
+  dict: "./jieba/dict.txt"
+  // userDict: "./jieba/userdict.utf8"
 });
 
 import stringSimilarity from "string-similarity";
 import JaroWinkler from "jaro-winkler";
 import VectorSimilarity from "compute-cosine-similarity";
 
-import synonyms from "node-synonyms";
+//import synonyms from "node-synonyms";
 
 import {
   tify, //tify=轉成正體中文
@@ -24,13 +24,20 @@ import {
   metricLcs,
   DeduplicationMergedObject2
 } from "./src/Calculation";
-import { replaceCumulative } from "./src/ArrayProcess";
-import { DictionaryIntegration } from "./src/dictionaryIntegration/DictionaryIntegration";
+//import { replaceCumulative } from "./src/ArrayProcess";
+import {
+  DictionaryIntegration
+} from "./src/dictionaryIntegration/DictionaryIntegration";
 
-const KeywordCombinationReplaceAll = () => {
-  fs.readFile("./file/Black/BlackCat_QAList.json", "utf-8", (BlackSentenceError, BlackSentenceData) => {
+const replaceCumulative = (Sentence, FindList, ReplaceList) => {
+  for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), ReplaceList[i]);
+  return Sentence;
+};
+
+const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) => {
+  fs.readFile(ReplacedSentenceFile, "utf-8", (BlackSentenceError, BlackSentenceData) => {
     const BlackSentenceList = JSON.parse(BlackSentenceData);
-    fs.readFile("./file/Samsung/Samsung_LocalCombinationThree.json", "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
+    fs.readFile(CombinedWordFile, "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
       const SamsungSentenceList = JSON.parse(SamsungSentenceData);
 
       // 迭代句子
@@ -53,20 +60,23 @@ const KeywordCombinationReplaceAll = () => {
             });
           });
 
+          // console.log(BlackSentenceListTagNoun, BlackSentenceListTagVerb)
+
           Object.keys(SamsungSentenceList).map(SamsungSentenceItem => {
             SamsungSentenceList[SamsungSentenceItem].filter(SamsungWordValue => {
               //判斷組合詞是否大於1 && black 與samsung 組合詞長度是否一樣
-              const CombinationArrayLength =
+              if (
+                SamsungWordValue.n &&
+                SamsungWordValue.v !== undefined &&
                 BlackSentenceListTagNoun.length === SamsungWordValue.n.length &&
-                BlackSentenceListTagVerb.length === SamsungWordValue.v.length;
-
-              if (SamsungWordValue.n && SamsungWordValue.v !== undefined && CombinationArrayLength) {
+                BlackSentenceListTagVerb.length === SamsungWordValue.v.length
+              ) {
                 //組合替換名詞
                 const replaceSentenceNoun = replaceCumulative(BlackSentenceValue, BlackSentenceListTagNoun, SamsungWordValue.n);
                 //組合替換動詞
                 const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagVerb, SamsungWordValue.v);
 
-                // console.log(replaceSentenceVerb);
+                console.log(replaceSentenceVerb);
 
                 // fs.appendFileSync("./file/output/replaceSentenceListThree.json", '"' + replaceSentenceVerb + '",\n', err => {
                 //   if (err) throw err;
@@ -103,30 +113,30 @@ const SearchSimilarSentences = () => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
 
           //判斷相似度
-          if (JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.2) {
-            // console.log(
-            //   "jaro winkler 相似度=> " +
-            //     JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
-            //     "  輸入句 => " +
-            //     SearchSentenceListValue +
-            //     "  相似句 => " +
-            //     SentenceValue +
-            //     "\n"
-            // );
-            fs.appendFileSync(
-              "./file/output/JaroWinkler.txt",
-              "相似度=> " +
-                JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
-                "  輸入句 => " +
-                SearchSentenceListValue +
-                "  相似句 => " +
-                SentenceValue +
-                "\n",
-              err => {
-                if (err) throw err;
-              }
-            );
-          }
+          // if (JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.2) {
+          //   // console.log(
+          //   //   "jaro winkler 相似度=> " +
+          //   //     JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
+          //   //     "  輸入句 => " +
+          //   //     SearchSentenceListValue +
+          //   //     "  相似句 => " +
+          //   //     SentenceValue +
+          //   //     "\n"
+          //   // );
+          //   fs.appendFileSync(
+          //     "./file/output/JaroWinkler.txt",
+          //     "相似度=> " +
+          //       JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
+          //       "  輸入句 => " +
+          //       SearchSentenceListValue +
+          //       "  相似句 => " +
+          //       SentenceValue +
+          //       "\n",
+          //     err => {
+          //       if (err) throw err;
+          //     }
+          //   );
+          // }
 
           // dice
           if (
@@ -146,10 +156,10 @@ const SearchSimilarSentences = () => {
             fs.appendFileSync(
               "./file/output/dice.txt",
               "輸入句 => " +
-                SearchSentenceListArr[SearchSentenceIndex] +
-                "   相似句 => " +
-                stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target +
-                "\n",
+              SearchSentenceListArr[SearchSentenceIndex] +
+              "   相似句 => " +
+              stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target +
+              "\n",
               err => {
                 if (err) throw err;
               }
@@ -240,39 +250,11 @@ const CalculationWordDistance = () => {
   });
 };
 
-//KeywordCombinationReplaceAll();
+//KeywordCombinationReplaceAll("./file/Black/BlackCat_QAList.json", "./file/Samsung/Samsung_LocalCombination.json");
 
 //SearchSimilarSentences();
 
 //CalculationWordDistance();
-
-// fs.readFile("./file/Black/BlackCat_QAList.json", "utf-8", (err, data) => {
-//   const list = JSON.parse(data);
-
-//   const saveList = [];
-//   console.log(list["台灣大哥大配送資料修改方式"]);
-
-//   // Object.keys(list).map(Item => {
-//   list["台灣大哥大配送資料修改方式"].map(WordValue => {
-//     const PartOfSpeechCombinationList = [];
-//     nodejieba.cut(WordValue).map(CutValue => {
-//       nodejieba.tag(CutValue).map(SentenceTagItem => {
-//         PartOfSpeechCombinationList.push(SentenceTagItem.tag);
-//       });
-//     });
-//     saveList.push(PartOfSpeechCombinationList.toString());
-//   });
-//   // });
-
-//   console.log(saveList);
-//   // fs.writeFile('./file/output/pos.json',JSON.stringify())
-
-//   // for (let i = 0; i < saveList.length - 1; i++) {
-//   //   if (similarity(saveList[i], saveList[i + 1]) >= 0.8) {
-//   //     console.log("相似度=", similarity(saveList[i], saveList[i + 1]).toFixed(3), saveList[i], saveList[i + 1]);
-//   //   }
-//   // }
-// });
 
 // nodejieba.cut("你正做什麼").map(CutValue => {
 //   synonyms.vector(sify(CutValue)).then(VectorValue => {
@@ -281,3 +263,28 @@ const CalculationWordDistance = () => {
 //     //console.log(VectorValue.reduce((one, two) => one + two, 0) / VectorValue.length);
 //   });
 // });
+
+const QList = [];
+const AList = [];
+const q = "用過的電池使用還可以再次利用嗎？";
+const a = "請遵循當地所有法規棄置用過的電池或手機。";
+
+nodejieba.cut(q).map(CutValue => {
+  nodejieba.tag(CutValue).map(SentenceTagItem => {
+    console.log(SentenceTagItem);
+    QList.push(SentenceTagItem.word);
+  });
+});
+
+nodejieba.cut(a).map(CutValue => {
+  nodejieba.tag(CutValue).map(SentenceTagItem => {
+    console.log(SentenceTagItem);
+    AList.push(SentenceTagItem.word);
+  });
+});
+
+// console.log(QList.toString());
+// console.log(AList.toString());
+
+console.log(nodejieba.extract(q, 20));
+console.log(nodejieba.extract(a, 20));

@@ -2,8 +2,8 @@ import fs from "fs";
 import nodejieba from "nodejieba";
 
 nodejieba.load({
-  dict: "./jieba/dict.txt"
-  // userDict: "./jieba/userdict.utf8"
+  dict: "./jieba/dict.txt",
+  userDict: "./jieba/userdict.utf8"
 });
 
 import stringSimilarity from "string-similarity";
@@ -25,12 +25,12 @@ import {
   DeduplicationMergedObject2
 } from "./src/Calculation";
 //import { replaceCumulative } from "./src/ArrayProcess";
-import {
-  DictionaryIntegration
-} from "./src/dictionaryIntegration/DictionaryIntegration";
+import { DictionaryIntegration } from "./src/dictionaryIntegration/DictionaryIntegration";
 
 const replaceCumulative = (Sentence, FindList, ReplaceList) => {
-  for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), ReplaceList[i]);
+  for (let i = 0; i < FindList.length; i++) {
+    Sentence = Sentence.replace(new RegExp(FindList[i]), ReplaceList[i]);
+  }
   return Sentence;
 };
 
@@ -60,10 +60,9 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) =>
             });
           });
 
-          // console.log(BlackSentenceListTagNoun, BlackSentenceListTagVerb)
-
           Object.keys(SamsungSentenceList).map(SamsungSentenceItem => {
             SamsungSentenceList[SamsungSentenceItem].filter(SamsungWordValue => {
+              // console.log(SamsungWordValue);
               //判斷組合詞是否大於1 && black 與samsung 組合詞長度是否一樣
               if (
                 SamsungWordValue.n &&
@@ -71,12 +70,13 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) =>
                 BlackSentenceListTagNoun.length === SamsungWordValue.n.length &&
                 BlackSentenceListTagVerb.length === SamsungWordValue.v.length
               ) {
+                //console.log(BlackSentenceListTagNoun, SamsungWordValue.n);
                 //組合替換名詞
                 const replaceSentenceNoun = replaceCumulative(BlackSentenceValue, BlackSentenceListTagNoun, SamsungWordValue.n);
                 //組合替換動詞
                 const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagVerb, SamsungWordValue.v);
 
-                console.log(replaceSentenceVerb);
+                //console.log(replaceSentenceVerb);
 
                 // fs.appendFileSync("./file/output/replaceSentenceListThree.json", '"' + replaceSentenceVerb + '",\n', err => {
                 //   if (err) throw err;
@@ -156,10 +156,10 @@ const SearchSimilarSentences = () => {
             fs.appendFileSync(
               "./file/output/dice.txt",
               "輸入句 => " +
-              SearchSentenceListArr[SearchSentenceIndex] +
-              "   相似句 => " +
-              stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target +
-              "\n",
+                SearchSentenceListArr[SearchSentenceIndex] +
+                "   相似句 => " +
+                stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target +
+                "\n",
               err => {
                 if (err) throw err;
               }
@@ -264,27 +264,27 @@ const CalculationWordDistance = () => {
 //   });
 // });
 
-const QList = [];
-const AList = [];
-const q = "用過的電池使用還可以再次利用嗎？";
-const a = "請遵循當地所有法規棄置用過的電池或手機。";
+// const QList = [];
+// const AList = [];
+// const q = "用過的電池使用還可以再次利用嗎？";
+// const a = "請遵循當地所有法規棄置用過的電池或手機。";
 
-nodejieba.cut(q).map(CutValue => {
-  nodejieba.tag(CutValue).map(SentenceTagItem => {
-    console.log(SentenceTagItem);
-    QList.push(SentenceTagItem.word);
-  });
-});
+// nodejieba.cut(q).map(CutValue => {
+//   nodejieba.tag(CutValue).map(SentenceTagItem => {
+//     console.log(SentenceTagItem);
+//     QList.push(SentenceTagItem.word);
+//   });
+// });
 
-nodejieba.cut(a).map(CutValue => {
-  nodejieba.tag(CutValue).map(SentenceTagItem => {
-    console.log(SentenceTagItem);
-    AList.push(SentenceTagItem.word);
-  });
-});
+// nodejieba.cut(a).map(CutValue => {
+//   nodejieba.tag(CutValue).map(SentenceTagItem => {
+//     console.log(SentenceTagItem);
+//     AList.push(SentenceTagItem.word);
+//   });
+// });
 
-// console.log(QList.toString());
-// console.log(AList.toString());
+// // console.log(QList.toString());
+// // console.log(AList.toString());
 
-console.log(nodejieba.extract(q, 20));
-console.log(nodejieba.extract(a, 20));
+// console.log(nodejieba.extract(q, 20));
+// console.log(nodejieba.extract(a, 20));

@@ -6,16 +6,14 @@ nodejieba.load({
   userDict: "./jieba/userdict.utf8"
 });
 
-import stringSimilarity from "string-similarity";
-import JaroWinkler from "jaro-winkler";
-import VectorSimilarity from "compute-cosine-similarity";
-
 //import synonyms from "node-synonyms";
 
 import {
   tify, //tify=轉成正體中文
   sify
 } from "chinese-conv";
+
+import stringSimilarity from "string-similarity";
 
 import {
   similarity,
@@ -76,11 +74,7 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) =>
                 //組合替換動詞
                 const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagVerb, SamsungWordValue.v);
 
-                //console.log(replaceSentenceVerb);
-
-                // fs.appendFileSync("./file/output/replaceSentenceListThree.json", '"' + replaceSentenceVerb + '",\n', err => {
-                //   if (err) throw err;
-                // });
+                console.log(BlackSentenceListTagNoun, SamsungWordValue.n);
               }
             });
           });
@@ -112,72 +106,46 @@ const SearchSimilarSentences = () => {
         SearchSentenceList.map((SearchSentenceListValue, SearchSentenceIndex, SearchSentenceListArray) => {
           const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
 
-          //判斷相似度
-          // if (JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.2) {
-          //   // console.log(
-          //   //   "jaro winkler 相似度=> " +
-          //   //     JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
-          //   //     "  輸入句 => " +
-          //   //     SearchSentenceListValue +
-          //   //     "  相似句 => " +
-          //   //     SentenceValue +
-          //   //     "\n"
-          //   // );
-          //   fs.appendFileSync(
-          //     "./file/output/JaroWinkler.txt",
-          //     "相似度=> " +
-          //       JaroWinkler(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
-          //       "  輸入句 => " +
-          //       SearchSentenceListValue +
-          //       "  相似句 => " +
-          //       SentenceValue +
-          //       "\n",
-          //     err => {
-          //       if (err) throw err;
-          //     }
-          //   );
-          // }
-
           // dice
-          if (
-            stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.rating >= 0.2
-          ) {
-            // console.log(
-            //   "dice 相似度=> " +
-            //     stringSimilarity
-            //       .findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr)
-            //       .bestMatch.rating.toFixed(3),
-            //   "\n  輸入句 => ",
-            //   SearchSentenceListArr[SearchSentenceIndex],
-            //   "\n  相似句 => ",
-            //   stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target
-            // );
+          // if (
+          //   stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.rating >= 0.2
+          // ) {
+          //   console.log(
+          //     "dice 相似度=> " +
+          //       stringSimilarity
+          //         .findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr)
+          //         .bestMatch.rating.toFixed(3),
+          //     "\n  輸入句 => ",
+          //     SearchSentenceListArr[SearchSentenceIndex],
+          //     "\n  相似句 => ",
+          //     stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target
+          //   );
 
-            fs.appendFileSync(
-              "./file/output/dice.txt",
-              "輸入句 => " +
-                SearchSentenceListArr[SearchSentenceIndex] +
-                "   相似句 => " +
-                stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target +
-                "\n",
-              err => {
-                if (err) throw err;
-              }
-            );
-          }
+          //   // fs.appendFileSync(
+          //   //   "./file/output/dice.txt",
+          //   //   "輸入句 => " +
+          //   //     SearchSentenceListArr[SearchSentenceIndex] +
+          //   //     "   相似句 => " +
+          //   //     stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target +
+          //   //     "\n",
+          //   //   err => {
+          //   //     if (err) throw err;
+          //   //   }
+          //   // );
+          // }
 
           // levenshtein
-          // if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
-          //   console.log(
-          //     "levenshtein 相似度=> " +
-          //       similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
-          //       "  輸入句 => " +
-          //       SearchSentenceListValue +
-          //       "  相似句 => " +
-          //       SentenceValue +
-          //       "\n"
-          //   );
-          // }
+          if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
+            console.log(
+              "levenshtein 相似度=> " +
+                similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
+                "  輸入句 => " +
+                SearchSentenceListValue +
+                "  相似句 => " +
+                SentenceValue +
+                "\n"
+            );
+          }
         });
         //---------------------------//
 
@@ -252,39 +220,4 @@ const CalculationWordDistance = () => {
 
 //KeywordCombinationReplaceAll("./file/Black/BlackCat_QAList.json", "./file/Samsung/Samsung_LocalCombination.json");
 
-//SearchSimilarSentences();
-
-//CalculationWordDistance();
-
-// nodejieba.cut("你正做什麼").map(CutValue => {
-//   synonyms.vector(sify(CutValue)).then(VectorValue => {
-//     console.log(VectorValue);
-
-//     //console.log(VectorValue.reduce((one, two) => one + two, 0) / VectorValue.length);
-//   });
-// });
-
-// const QList = [];
-// const AList = [];
-// const q = "用過的電池使用還可以再次利用嗎？";
-// const a = "請遵循當地所有法規棄置用過的電池或手機。";
-
-// nodejieba.cut(q).map(CutValue => {
-//   nodejieba.tag(CutValue).map(SentenceTagItem => {
-//     console.log(SentenceTagItem);
-//     QList.push(SentenceTagItem.word);
-//   });
-// });
-
-// nodejieba.cut(a).map(CutValue => {
-//   nodejieba.tag(CutValue).map(SentenceTagItem => {
-//     console.log(SentenceTagItem);
-//     AList.push(SentenceTagItem.word);
-//   });
-// });
-
-// // console.log(QList.toString());
-// // console.log(AList.toString());
-
-// console.log(nodejieba.extract(q, 20));
-// console.log(nodejieba.extract(a, 20));
+SearchSimilarSentences();

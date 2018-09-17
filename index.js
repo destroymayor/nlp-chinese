@@ -2,11 +2,11 @@ import fs from "fs";
 import nodejieba from "nodejieba";
 
 nodejieba.load({
-  dict: "./jieba/dict.txt",
-  userDict: "./jieba/userdict.utf8"
+  dict: "./jieba/dict.txt"
+  // userDict: "./jieba/userdict.utf8"
 });
 
-//import synonyms from "node-synonyms";
+import synonyms from "node-synonyms";
 
 import {
   tify, //tify=轉成正體中文
@@ -15,66 +15,82 @@ import {
 
 import stringSimilarity from "string-similarity";
 
-import {
-  similarity,
-  longestCommonSubsequence,
-  levenshteinDistance,
-  metricLcs,
-  DeduplicationMergedObject2
-} from "./src/Calculation";
-//import { replaceCumulative } from "./src/ArrayProcess";
-import { DictionaryIntegration } from "./src/dictionaryIntegration/DictionaryIntegration";
+// import {
+//   similarity,
+//   longestCommonSubsequence,
+//   levenshteinDistance,
+//   metricLcs,
+//   DeduplicationMergedObject2
+// } from "./src/Calculation";
 
-const replaceCumulative = (Sentence, FindList, ReplaceList) => {
-  for (let i = 0; i < FindList.length; i++) {
-    Sentence = Sentence.replace(new RegExp(FindList[i]), ReplaceList[i]);
+//import { replaceCumulative } from "./src/ArrayProcess";
+
+const replaceCumulative = (Sentence, FindList, ReplaceList, word) => {
+  if (word == "n") {
+    for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "(" + ReplaceList[i] + ")");
+    return Sentence;
   }
-  return Sentence;
+  if (word == "v") {
+    for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "[" + ReplaceList[i] + "]");
+    return Sentence;
+  }
 };
 
 const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) => {
-  fs.readFile(ReplacedSentenceFile, "utf-8", (BlackSentenceError, BlackSentenceData) => {
-    const BlackSentenceList = JSON.parse(BlackSentenceData);
-    fs.readFile(CombinedWordFile, "utf-8", (SamsungSentenceError, SamsungSentenceData) => {
-      const SamsungSentenceList = JSON.parse(SamsungSentenceData);
+  fs.readFile(ReplacedSentenceFile, "utf-8", (BeingReplaceError, BeingReplaceData) => {
+    const BeingReplaceList = JSON.parse(BeingReplaceData);
+    fs.readFile(CombinedWordFile, "utf-8", (BecomeDataError, BecomeData) => {
+      const BecomeDataList = JSON.parse(BecomeData);
 
       // 迭代句子
-      Object.keys(BlackSentenceList).map(BlackSentenceItem => {
-        BlackSentenceList[BlackSentenceItem].filter(BlackSentenceValue => {
+      Object.values(BeingReplaceList).map(BlackSentenceItem => {
+        BlackSentenceItem.map(item => {
+          const BeingReplaceListTagNoun = [];
+          const BeingReplaceListTagVerb = [];
           // BlackCat Noun and Verb list
-          const BlackSentenceListTagNoun = [];
-          const BlackSentenceListTagVerb = [];
-
-          nodejieba.cut(BlackSentenceValue).map(CutValue => {
-            nodejieba.tag(CutValue).map(BlackSentenceListTagValue => {
+          nodejieba.cut(item.article_title).map(CutValue => {
+            nodejieba.tag(CutValue).map(CutTagValue => {
               //Noun and word length > 1
-              if (BlackSentenceListTagValue.tag === "n" && BlackSentenceListTagValue.word.length > 1) {
-                BlackSentenceListTagNoun.push(BlackSentenceListTagValue.word);
+              if (CutTagValue.tag === "n" && CutTagValue.word.length > 1) {
+                BeingReplaceListTagNoun.push(CutTagValue.word);
               }
-              //Verb and word length > 1
-              if (BlackSentenceListTagValue.tag === "v" && BlackSentenceListTagValue.word.length > 1) {
-                BlackSentenceListTagVerb.push(BlackSentenceListTagValue.word);
+              // //Verb and word length > 1
+              if (CutTagValue.tag === "v" && CutTagValue.word.length > 1) {
+                BeingReplaceListTagVerb.push(CutTagValue.word);
               }
             });
           });
 
-          Object.keys(SamsungSentenceList).map(SamsungSentenceItem => {
-            SamsungSentenceList[SamsungSentenceItem].filter(SamsungWordValue => {
-              // console.log(SamsungWordValue);
+          Object.values(BecomeDataList).map(BecomeDataItem => {
+            BecomeDataItem.item.map(BecomeDataItemValue => {
               //判斷組合詞是否大於1 && black 與samsung 組合詞長度是否一樣
-              if (
-                SamsungWordValue.n &&
-                SamsungWordValue.v !== undefined &&
-                BlackSentenceListTagNoun.length === SamsungWordValue.n.length &&
-                BlackSentenceListTagVerb.length === SamsungWordValue.v.length
-              ) {
-                //console.log(BlackSentenceListTagNoun, SamsungWordValue.n);
-                //組合替換名詞
-                const replaceSentenceNoun = replaceCumulative(BlackSentenceValue, BlackSentenceListTagNoun, SamsungWordValue.n);
-                //組合替換動詞
-                const replaceSentenceVerb = replaceCumulative(replaceSentenceNoun, BlackSentenceListTagVerb, SamsungWordValue.v);
 
-                console.log(BlackSentenceListTagNoun, SamsungWordValue.n);
+              if (BecomeDataItemValue.hasOwnProperty("v")) {
+                if (
+                  BeingReplaceListTagNoun.length === BecomeDataItemValue.n.length &&
+                  BeingReplaceListTagVerb.length === BecomeDataItemValue.v.length
+                ) {
+                  //組合替換名詞
+                  const ResultSentenceNoun = replaceCumulative(
+                    item.article_title,
+                    BeingReplaceListTagNoun,
+                    BecomeDataItemValue.n,
+                    "n"
+                  );
+
+                  //組合替換動詞
+                  const ResultSentenceVerb = replaceCumulative(
+                    ResultSentenceNoun,
+                    BeingReplaceListTagVerb,
+                    BecomeDataItemValue.v,
+                    "v"
+                  );
+
+                  //console.log(ResultSentenceVerb);
+                  // fs.appendFileSync("./file/output/replace1.txt", ResultSentenceVerb + "\n", err => {
+                  //   if (err) throw err;
+                  // });
+                }
               }
             });
           });
@@ -85,91 +101,39 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) =>
 };
 
 // 收斂 尋找相似句子
-const SearchSimilarSentences = () => {
-  fs.readFile("./file/output/replaceSentenceList.json", "utf-8", (err, SentenceDataList) => {
+const SearchSimilarSentences = (GenerateSentenceFile, ReferenceSentenceFile) => {
+  fs.readFile(GenerateSentenceFile, "utf-8", (err, GenerateSentenceData) => {
     if (err) throw err;
-    // Samsung Sentence list
-    const SamsungSentenceListArray = [];
-    //迭代所有Samsung句子
-    fs.readFile("./file/Samsung/SamsungSentence_List.json", "utf-8", (error, SamsungSentenceData) => {
+
+    fs.readFile(ReferenceSentenceFile, "utf-8", (error, ReferenceSentenceData) => {
       if (error) throw error;
-      JSON.parse(SamsungSentenceData).map(SamsungSentenceListValue => {
-        SamsungSentenceListArray.push(SamsungSentenceListValue);
-      });
 
-      //迭代語料庫所有句子
-      JSON.parse(SentenceDataList).map((SentenceValue, SentenceIndex, SentenceValueArray) => {
-        const SentenceValueArr = SentenceValueArray.map(item => item);
-        //-------- levenshtein 句子對句子 --------//
-        //Samsung sentence list
-        const SearchSentenceList = [...new Set(SamsungSentenceListArray)];
-        SearchSentenceList.map((SearchSentenceListValue, SearchSentenceIndex, SearchSentenceListArray) => {
-          const SearchSentenceListArr = SearchSentenceListArray.map(item => item);
-
-          // dice
-          // if (
-          //   stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.rating >= 0.2
-          // ) {
-          //   console.log(
-          //     "dice 相似度=> " +
-          //       stringSimilarity
-          //         .findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr)
-          //         .bestMatch.rating.toFixed(3),
-          //     "\n  輸入句 => ",
-          //     SearchSentenceListArr[SearchSentenceIndex],
-          //     "\n  相似句 => ",
-          //     stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target
-          //   );
-
-          //   // fs.appendFileSync(
-          //   //   "./file/output/dice.txt",
-          //   //   "輸入句 => " +
-          //   //     SearchSentenceListArr[SearchSentenceIndex] +
-          //   //     "   相似句 => " +
-          //   //     stringSimilarity.findBestMatch(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr).bestMatch.target +
-          //   //     "\n",
-          //   //   err => {
-          //   //     if (err) throw err;
-          //   //   }
-          //   // );
-          // }
-
-          // levenshtein
-          if (similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]) >= 0.5) {
+      //迭代所有 ReferenceSentence
+      JSON.parse(ReferenceSentenceData).map(ReferenceSentenceItem => {
+        //迭代語料庫所有句子
+        JSON.parse(GenerateSentenceData).map(GenerateSentenceValue => {
+          //dice
+          if (stringSimilarity.compareTwoStrings(ReferenceSentenceItem, GenerateSentenceValue) > 0.1) {
             console.log(
-              "levenshtein 相似度=> " +
-                similarity(SearchSentenceListArr[SearchSentenceIndex], SentenceValueArr[SentenceIndex]).toFixed(3) +
-                "  輸入句 => " +
-                SearchSentenceListValue +
-                "  相似句 => " +
-                SentenceValue +
-                "\n"
+              stringSimilarity
+                .compareTwoStrings(ReferenceSentenceTotal[ReferenceSentenceIndex], GenerateSentenceValue)
+                .toFixed(3),
+              GenerateSentenceValue
             );
           }
+          // levenshtein
+          // if (similarity(ReferenceSentenceTotal[ReferenceSentenceIndex], GenerateSentenceArr[GenerateSentenceIndex]) >= 0) {
+          //   console.log(
+          //     "levenshtein 相似度=> " +
+          //       similarity(ReferenceSentenceTotal[ReferenceSentenceIndex], GenerateSentenceArr[GenerateSentenceIndex]).toFixed(3) +
+          //       "  輸入句 => " +
+          //       SearchSentenceListValue +
+          //       "  相似句 => " +
+          //       SentenceValue +
+          //       "\n"
+          //   );
+          // }
         });
-        //---------------------------//
-
-        //-------- 詞性組合方法 --------//
-        // const PartOfSpeechCombinationList = [];
-        // nodejieba.cut(SentenceValue).map(CutValue => {
-        //   nodejieba.tag(CutValue).map(SentenceTagItem => {
-        //     if (SentenceTagItem.tag == "n" || SentenceTagItem.tag == "v") {
-        //       PartOfSpeechCombinationList.push({
-        //         sentence: SentenceValue,
-        //         tag: SentenceTagItem.tag
-        //       });
-        //     }
-        //   });
-        // });
-
-        // DeduplicationMergedObject2(PartOfSpeechCombinationList).map(POSCombinationValue => {
-        //   const PartOfSpeechCombination = "nnnvvvv";
-        //   const POSCombination = POSCombinationValue.tag.toString().replace(new RegExp(",", "g"), "");
-        //   if (PartOfSpeechCombination === POSCombination) {
-        //     console.log("\n相似句=", POSCombinationValue.sentence, "\n詞性組合=", POSCombination);
-        //   }
-        // });
-        //---------------------------//
       });
     });
   });
@@ -218,6 +182,6 @@ const CalculationWordDistance = () => {
   });
 };
 
-//KeywordCombinationReplaceAll("./file/Black/BlackCat_QAList.json", "./file/Samsung/Samsung_LocalCombination.json");
+KeywordCombinationReplaceAll("./file/data.json", "./file/Combination.json");
 
-SearchSimilarSentences();
+//SearchSimilarSentences("./file/replace.json", "./file/Reference.json");

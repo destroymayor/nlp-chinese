@@ -2,11 +2,10 @@ import fs from "fs";
 import nodejieba from "nodejieba";
 
 nodejieba.load({
-  dict: "./jieba/dict.txt"
+  dict: "./jieba/dict.txt",
+  stopWordDict: "./jieba/stop_words.utf8"
   // userDict: "./jieba/userdict.utf8"
 });
-
-import synonyms from "node-synonyms";
 
 import {
   tify, //tify=轉成正體中文
@@ -23,8 +22,6 @@ import stringSimilarity from "string-similarity";
 //   DeduplicationMergedObject2
 // } from "./src/Calculation";
 
-//import { replaceCumulative } from "./src/ArrayProcess";
-
 const replaceCumulative = (Sentence, FindList, ReplaceList, word) => {
   if (word == "n") {
     for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "(" + ReplaceList[i] + ")");
@@ -36,12 +33,12 @@ const replaceCumulative = (Sentence, FindList, ReplaceList, word) => {
   }
 };
 
+//詞組合句子生成
 const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) => {
   fs.readFile(ReplacedSentenceFile, "utf-8", (BeingReplaceError, BeingReplaceData) => {
     const BeingReplaceList = JSON.parse(BeingReplaceData);
     fs.readFile(CombinedWordFile, "utf-8", (BecomeDataError, BecomeData) => {
       const BecomeDataList = JSON.parse(BecomeData);
-
       // 迭代句子
       Object.values(BeingReplaceList).map(BlackSentenceItem => {
         BlackSentenceItem.map(item => {
@@ -63,8 +60,6 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) =>
 
           Object.values(BecomeDataList).map(BecomeDataItem => {
             BecomeDataItem.item.map(BecomeDataItemValue => {
-              //判斷組合詞是否大於1 && black 與samsung 組合詞長度是否一樣
-
               if (BecomeDataItemValue.hasOwnProperty("v")) {
                 if (
                   BeingReplaceListTagNoun.length === BecomeDataItemValue.n.length &&
@@ -86,10 +81,14 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) =>
                     "v"
                   );
 
-                  //console.log(ResultSentenceVerb);
-                  // fs.appendFileSync("./file/output/replace1.txt", ResultSentenceVerb + "\n", err => {
-                  //   if (err) throw err;
-                  // });
+                  console.log(ResultSentenceVerb);
+                  fs.appendFileSync(
+                    "./file/output/replace1.txt",
+                    "生成句=> " + ResultSentenceVerb + " , 法條=> " + BecomeDataItemValue.sourceText + "\n",
+                    err => {
+                      if (err) throw err;
+                    }
+                  );
                 }
               }
             });
@@ -182,6 +181,6 @@ const CalculationWordDistance = () => {
   });
 };
 
-KeywordCombinationReplaceAll("./file/data.json", "./file/Combination.json");
+KeywordCombinationReplaceAll("./file/data.json", "./file/Combination1.json");
 
 //SearchSimilarSentences("./file/replace.json", "./file/Reference.json");

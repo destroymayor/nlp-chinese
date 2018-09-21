@@ -1,4 +1,5 @@
 import fs from "fs";
+import process from "process";
 import nodejieba from "nodejieba";
 
 nodejieba.load({
@@ -22,6 +23,7 @@ import stringSimilarity from "string-similarity";
 //   DeduplicationMergedObject2
 // } from "./src/Calculation";
 
+// replace function
 const replaceCumulative = (Sentence, FindList, ReplaceList, word) => {
   if (word == "n") {
     for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "(" + ReplaceList[i] + ")");
@@ -34,16 +36,20 @@ const replaceCumulative = (Sentence, FindList, ReplaceList, word) => {
 };
 
 //詞組合句子生成
-const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) => {
+const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, output, GenerationsNumber) => {
+  //產生句數量計數
+  let num = 0;
+
   fs.readFile(ReplacedSentenceFile, "utf-8", (BeingReplaceError, BeingReplaceData) => {
     const BeingReplaceList = JSON.parse(BeingReplaceData);
     fs.readFile(CombinedWordFile, "utf-8", (BecomeDataError, BecomeData) => {
       const BecomeDataList = JSON.parse(BecomeData);
-      // 迭代句子
+
       Object.values(BeingReplaceList).map(BlackSentenceItem => {
         BlackSentenceItem.map(item => {
           const BeingReplaceListTagNoun = [];
           const BeingReplaceListTagVerb = [];
+
           // BlackCat Noun and Verb list
           nodejieba.cut(item.article_title).map(CutValue => {
             nodejieba.tag(CutValue).map(CutTagValue => {
@@ -81,14 +87,19 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) =>
                     "v"
                   );
 
-                  console.log(ResultSentenceVerb);
                   fs.appendFileSync(
-                    "./file/output/replace1.txt",
-                    "生成句=> " + ResultSentenceVerb + " , 法條=> " + BecomeDataItemValue.sourceText + "\n",
+                    output,
+                    "N:" + item.article_title + ", Q: " + ResultSentenceVerb + ", A: " + BecomeDataItemValue.sourceText + "\n",
                     err => {
                       if (err) throw err;
                     }
                   );
+
+                  //控制產生數量
+                  num++;
+                  if (num == GenerationsNumber) {
+                    process.exit(0);
+                  }
                 }
               }
             });
@@ -98,6 +109,8 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile) =>
     });
   });
 };
+
+KeywordCombinationReplaceAll("./file/dataPTT.json", "./file/Combination.json", "./file/output/replacePTT.txt", 10000);
 
 // 收斂 尋找相似句子
 const SearchSimilarSentences = (GenerateSentenceFile, ReferenceSentenceFile) => {
@@ -137,50 +150,5 @@ const SearchSimilarSentences = (GenerateSentenceFile, ReferenceSentenceFile) => 
     });
   });
 };
-
-const CalculationWordDistance = () => {
-  fs.readFile("./file/output/SimilaritySentence1.json", "utf-8", (err, SentenceData) => {
-    const SentenceList = JSON.parse(SentenceData);
-
-    const i = 500;
-    nodejieba.cut(SentenceList[i]).map(CutValue => {
-      nodejieba.tag(CutValue).map(SentenceTagValueOne => {
-        if (SentenceTagValueOne.tag == "n") {
-          synonyms.nearby(sify(SentenceTagValueOne.word)).then(nearbyValue => {
-            console.log("原始句      =>", SentenceList[i]);
-            nearbyValue[0].map(item => {
-              console.log("替換同義詞後=>", SentenceList[i].replace(SentenceTagValueOne.word, "【" + tify(item) + "】"));
-
-              // fs.appendFileSync(
-              //   "./file/output/CreateSimilaritySentence.txt",
-              //   SentenceList[i].replace(SentenceTagValueOne.word, "【" + tify(item) + "】") + "\n",
-              //   err => {
-              //     if (err) throw err;
-              //   }
-              // );
-            });
-          });
-        }
-      });
-    });
-
-    //     synonyms.compare(sify(SentenceValueOne.word), sify(SentenceValueTwo.word)).then(similarity => {
-    //       if (SentenceValueOne.word !== SentenceValueTwo.word && similarity.toFixed(3) >= 0.5) {
-    //         console.log(
-    //           "\n句一=>",
-    //           Sentence1,
-    //           "\n句二=>",
-    //           Sentence2,
-    //           "\nkeyword相似度=>",
-    //           similarity.toFixed(3),
-    //           SentenceValueOne.word,
-    //           SentenceValueTwo.word
-    //         );
-    //       }
-    //     });
-  });
-};
-
-KeywordCombinationReplaceAll("./file/data.json", "./file/Combination1.json");
 
 //SearchSimilarSentences("./file/replace.json", "./file/Reference.json");

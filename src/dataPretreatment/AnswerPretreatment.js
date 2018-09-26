@@ -82,8 +82,7 @@ const Process = async () => {
         }
       });
 
-      console.log(Result);
-      exportResults(Result, "./file/output/Samsung_Combination.json");
+      exportResults(Result, "./file/Samsung/Samsung_Combination.json");
     })
     .catch(err => {
       console.log(err);

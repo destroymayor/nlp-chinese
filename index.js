@@ -26,11 +26,11 @@ import stringSimilarity from "string-similarity";
 // replace function
 const replaceCumulative = (Sentence, FindList, ReplaceList, word) => {
   if (word == "n") {
-    for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "" + ReplaceList[i] + "");
+    for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "(n" + ReplaceList[i] + ")");
     return Sentence;
   }
   if (word == "v") {
-    for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "" + ReplaceList[i] + "");
+    for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "[v" + ReplaceList[i] + "]");
     return Sentence;
   }
 };
@@ -86,13 +86,13 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
                     "v"
                   );
 
-                  // fs.appendFileSync(
-                  //   output,
-                  //   // "N:" + item.article_title + ", Q: " + ResultSentenceVerb + ", A: " + BecomeDataItemValue.sourceText + "\n",
-                  //   err => {
-                  //     if (err) throw err;
-                  //   }
-                  // );
+                  fs.appendFileSync(
+                    output,
+                    "N:" + item.article_title + ", Q: " + ResultSentenceVerb + ", A: " + BecomeDataItemValue.sourceText + "\n",
+                    err => {
+                      if (err) throw err;
+                    }
+                  );
 
                   //控制產生數量
                   num++;
@@ -109,7 +109,12 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
   });
 };
 
-KeywordCombinationReplaceAll("./file/data291.json", "./file/Combination.json", "./file/output/QA.txt", 10000);
+KeywordCombinationReplaceAll(
+  "./file/phone/phone.json",
+  "./file/Samsung/Samsung_Combination.json",
+  "./file/output/QA.txt",
+  300000
+);
 
 // 收斂 尋找相似句子
 const SearchSimilarSentences = (GenerateSentenceFile, ReferenceSentenceFile) => {

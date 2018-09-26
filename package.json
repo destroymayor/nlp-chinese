@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --watch src --exec babel-watch ./index.js",
-    "app": "nodemon --watch src --exec babel-watch ./src/AnswerPretreatment.js",
+    "app": "nodemon --watch src --exec babel-watch ./src/dataPretreatment/AnswerPretreatment.js",
+    "trainData": "nodemon --watch src --exec babel-watch ./src/dataPretreatment/trainDataProcess.js",
     "postinstall": "node-prune"
   },
   "author": "",

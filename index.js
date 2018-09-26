@@ -8,20 +8,9 @@ nodejieba.load({
   // userDict: "./jieba/userdict.utf8"
 });
 
-import {
-  tify, //tify=轉成正體中文
-  sify
-} from "chinese-conv";
-
 import stringSimilarity from "string-similarity";
 
-// import {
-//   similarity,
-//   longestCommonSubsequence,
-//   levenshteinDistance,
-//   metricLcs,
-//   DeduplicationMergedObject2
-// } from "./src/Calculation";
+// import { similarity } from "./src/Calculation";
 
 // replace function
 const replaceCumulative = (Sentence, FindList, ReplaceList, word) => {
@@ -40,11 +29,8 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
   //產生句數量計數
   let num = 0;
   fs.readFile(ReplacedSentenceFile, "utf-8", (BeingReplaceError, BeingReplaceData) => {
-    const BeingReplaceList = JSON.parse(BeingReplaceData);
     fs.readFile(CombinedWordFile, "utf-8", (BecomeDataError, BecomeData) => {
-      const BecomeDataList = JSON.parse(BecomeData);
-
-      Object.values(BeingReplaceList).map(BlackSentenceItem => {
+      Object.values(JSON.parse(BeingReplaceData)).map(BlackSentenceItem => {
         BlackSentenceItem.map(item => {
           const BeingReplaceListTagNoun = [];
           const BeingReplaceListTagVerb = [];
@@ -63,7 +49,7 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
             });
           });
 
-          Object.values(BecomeDataList).map(BecomeDataItem => {
+          Object.values(JSON.parse(BecomeData)).map(BecomeDataItem => {
             BecomeDataItem.item.map(BecomeDataItemValue => {
               if (BecomeDataItemValue.hasOwnProperty("v")) {
                 if (
@@ -86,13 +72,13 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
                     "v"
                   );
 
-                  fs.appendFileSync(
-                    output,
-                    "N:" + item.article_title + ", Q: " + ResultSentenceVerb + ", A: " + BecomeDataItemValue.sourceText + "\n",
-                    err => {
-                      if (err) throw err;
-                    }
-                  );
+                  // fs.appendFileSync(
+                  //   output,
+                  //   "N:" + item.article_title + ", Q: " + ResultSentenceVerb + ", A: " + BecomeDataItemValue.sourceText + "\n",
+                  //   err => {
+                  //     if (err) throw err;
+                  //   }
+                  // );
 
                   //控制產生數量
                   num++;

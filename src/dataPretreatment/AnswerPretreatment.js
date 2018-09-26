@@ -37,8 +37,8 @@ const exportResults = (parsedResults, coverFile) => {
     });
 };
 
-const Process = async () => {
-  readFileAsync("./file/Samsung/SamsungSentence_List.json")
+const Process = async (sourceText, output) => {
+  readFileAsync(sourceText)
     .then(data => {
       const jsonData = JSON.parse(data);
       const Result = [];
@@ -60,6 +60,7 @@ const Process = async () => {
         const NounList = [];
         const VerbList = [];
 
+        //名詞組合
         combinations(KeywordListNoun, 2).map(NounItem => {
           NounList.push({
             sourceText: RegulationValue,
@@ -67,12 +68,14 @@ const Process = async () => {
           });
         });
 
+        //動詞組合
         combinations(KeywordListVerb, 1).map(VerbItem => {
           VerbList.push({
             v: VerbItem
           });
         });
 
+        //合併
         const results = NounList.map((item, i) => Object.assign({}, item, VerbList[i]));
 
         if (results.length > 0) {
@@ -82,11 +85,11 @@ const Process = async () => {
         }
       });
 
-      exportResults(Result, "./file/Samsung/Samsung_Combination.json");
+      exportResults(Result, output);
     })
     .catch(err => {
       console.log(err);
     });
 };
 
-Process();
+Process("./file/Samsung/SamsungSentence_List.json", "./file/Samsung/Samsung_Combination.json");

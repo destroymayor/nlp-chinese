@@ -14,6 +14,7 @@ import { replaceCumulative } from "./src/ArrayProcess.js";
 import stringSimilarity from "string-similarity";
 //levenshtein
 import { similarity } from "./src/Calculation";
+import wuzzy from "wuzzy";
 
 //詞組合句子生成
 const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, output, GenerationsNumber) => {
@@ -125,3 +126,21 @@ const SearchSimilarSentences = (GenerateSentenceFile, ReferenceSentenceFile) => 
 };
 
 //SearchSimilarSentences("./file/replace.json", "./file/Reference.json");
+
+const str1 = "外接電腦使用連線";
+const str2 = "使用電腦資料纜線，將您的手機連線到電腦。";
+//外接電腦使用連線 A: 使用電腦資料纜線，將您的手機連線到電腦。
+// 外接作業系統登錄問題 A: 因修改登錄檔或作業系統軟體造成的效能或不相容性問題，三星概不負責。
+
+const badstr1 = "排除和裝置的都是如何影片的";
+const badstr2 = "故障排除您的裝置支持透過本裝置拍攝的相片和影片。";
+
+const stringMatch = (str1, str2) => {
+  console.log("jaro-winkler =>", wuzzy.jarowinkler(str1, str2));
+  console.log("jaccard =>", wuzzy.jaccard(str1, str2));
+  console.log("tanimoto", wuzzy.tanimoto(str1, str2));
+  console.log("levenshtein =>", wuzzy.levenshtein(str1, str2));
+  console.log("dice", stringSimilarity.compareTwoStrings(str1, str2));
+};
+
+stringMatch(str1, str2);

@@ -32,6 +32,8 @@ const writeAsyncFile = (output, result) => {
     };
     fs_writeFile(output, JSON.stringify(combinationsReplaceList), err => {
       if (err) console.log("write", err);
+
+      resolve(data);
     });
   });
 };
@@ -58,19 +60,19 @@ const TrainDataProcess = (input, output) => {
 
         const title = item.article_title
           .replace(new RegExp(SpecialSymbolCode, "g"), "") //特殊符號取代
-         // .replace(new RegExp(NumberCode, "g"), "Number") //將數字以特定文字代替
+          // .replace(new RegExp(NumberCode, "g"), "Number") //將數字以特定文字代替
           .replace(/  +/g, ""); //去多餘空白
 
         const content = item.content
           .replace(new RegExp(SpecialSymbolCode, "g"), "") //特殊符號取代
-         // .replace(new RegExp(NumberCode, "g"), "Number") //將數字以特定文字代替
+          // .replace(new RegExp(NumberCode, "g"), "Number") //將數字以特定文字代替
           .replace(/  +/g, ""); // 去多餘空白
 
         const reply = [];
         item.messages.map(item => {
           const replyItem = item
             .replace(new RegExp(SpecialSymbolCode, "g"), "") //特殊符號取代
-          //  .replace(new RegExp(NumberCode, "g"), "Number")
+            //  .replace(new RegExp(NumberCode, "g"), "Number")
             .replace(new RegExp(EmojiCode, "g"), "") //將數字以特定文字代替
             .replace(/  +/g, ""); // 去多餘空白
           reply.push(replyItem);

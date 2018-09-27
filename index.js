@@ -7,7 +7,7 @@ nodejieba.load({
   // userDict: "./jieba/userdict.utf8"
 });
 
-import { readFileAsync, fs_appendFileSync } from "./src/fs";
+import { readFileAsync, fs_appendFileSync, fs_writeFileSync } from "./src/fs";
 import { replaceCumulative } from "./src/ArrayProcess.js";
 
 //dice
@@ -20,6 +20,7 @@ import wuzzy from "wuzzy";
 const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, output, GenerationsNumber) => {
   //產生句數量計數
   let num = 0;
+  const outputList = [];
   readFileAsync(ReplacedSentenceFile).then(BeingReplaceData => {
     readFileAsync(CombinedWordFile).then(BecomeData => {
       Object.values(JSON.parse(BeingReplaceData)).map(BlackSentenceItem => {
@@ -62,12 +63,20 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
                     BecomeDataItemValue.v
                   );
 
-                  const OutputResult =
-                    "N:" + item.article_title + ", Q: " + ResultSentenceVerb + ", A: " + BecomeDataItemValue.sourceText + "\n";
-                  fs_appendFileSync(output, OutputResult, err => {
-                    if (err) console.log("write", err);
+                  // const OutputResult =
+                  //   "N:" + item.article_title + ", Q: " + ResultSentenceVerb + ", A: " + BecomeDataItemValue.sourceText + "\n";
+                  // fs_appendFileSync(output, OutputResult, err => {
+                  //   if (err) console.log("write", err);
+                  // });
+
+                  outputList.push({
+                    question: ResultSentenceVerb,
+                    answer: BecomeDataItemValue.sourceText
                   });
 
+                  fs_writeFileSync(output, JSON.stringify(outputList), err => {
+                    if (err) console.log("write", err);
+                  });
                   //控制產生數量
                   num++;
                   if (num == GenerationsNumber) process.exit(0);
@@ -81,66 +90,35 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
   });
 };
 
-// KeywordCombinationReplaceAll(
-//   "./file/phone/phone.json",
-//   "./file/Samsung/Samsung_Combination.json",
-//   "./file/output/QA1.txt",
-//   10000
-// );
-
-// 收斂 尋找相似句子
-const SearchSimilarSentences = (GenerateSentenceFile, ReferenceSentenceFile) => {
+// 收斂 尋找QA最佳對
+const SearchSimilarSentences = (GenerateSentenceFile, Threshold) => {
   readFileAsync(GenerateSentenceFile).then(GenerateSentenceData => {
-    readFileAsync(ReferenceSentenceFile).then(ReferenceSentenceData => {
-      //迭代所有 ReferenceSentence
-      JSON.parse(ReferenceSentenceData).map(ReferenceSentenceItem => {
-        //迭代語料庫所有句子
-        JSON.parse(GenerateSentenceData).map(GenerateSentenceValue => {
-          //dice
-          if (stringSimilarity.compareTwoStrings(ReferenceSentenceItem, GenerateSentenceValue) > 0.1) {
-            console.log(
-              stringSimilarity
-                .compareTwoStrings(ReferenceSentenceTotal[ReferenceSentenceIndex], GenerateSentenceValue)
-                .toFixed(3),
-              GenerateSentenceValue
-            );
-          }
-          // levenshtein
-          if (similarity(ReferenceSentenceTotal[ReferenceSentenceIndex], GenerateSentenceArr[GenerateSentenceIndex]) >= 0) {
-            console.log(
-              "levenshtein 相似度=> " +
-                similarity(ReferenceSentenceTotal[ReferenceSentenceIndex], GenerateSentenceArr[GenerateSentenceIndex]).toFixed(
-                  3
-                ) +
-                "  輸入句 => " +
-                SearchSentenceListValue +
-                "  相似句 => " +
-                SentenceValue +
-                "\n"
-            );
-          }
-        });
-      });
+    JSON.parse(GenerateSentenceData).map(SentenceValue => {
+      const Q = SentenceValue.question;
+      const A = SentenceValue.answer;
+      //dice
+      if (stringSimilarity.compareTwoStrings(Q, A) > Threshold) {
+        console.log("dice", stringSimilarity.compareTwoStrings(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+      }
+
+      //jaccard
+      if (wuzzy.jaccard(Q, A) > Threshold) {
+        console.log("jaccard", wuzzy.jaccard(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+      }
+
+      // levenshtein
+      if (wuzzy.levenshtein(Q, A) >= Threshold) {
+        console.log("levenshtein ", wuzzy.levenshtein(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+      }
     });
   });
 };
 
-//SearchSimilarSentences("./file/replace.json", "./file/Reference.json");
+// KeywordCombinationReplaceAll(
+//   "./file/phone/phone.json",
+//   "./file/Samsung/Samsung_Combination.json",
+//   "./file/output/QA.json",
+//   10000
+// );
 
-const str1 = "外接電腦使用連線";
-const str2 = "使用電腦資料纜線，將您的手機連線到電腦。";
-//外接電腦使用連線 A: 使用電腦資料纜線，將您的手機連線到電腦。
-// 外接作業系統登錄問題 A: 因修改登錄檔或作業系統軟體造成的效能或不相容性問題，三星概不負責。
-
-const badstr1 = "排除和裝置的都是如何影片的";
-const badstr2 = "故障排除您的裝置支持透過本裝置拍攝的相片和影片。";
-
-const stringMatch = (str1, str2) => {
-  console.log("jaro-winkler =>", wuzzy.jarowinkler(str1, str2));
-  console.log("jaccard =>", wuzzy.jaccard(str1, str2));
-  console.log("tanimoto", wuzzy.tanimoto(str1, str2));
-  console.log("levenshtein =>", wuzzy.levenshtein(str1, str2));
-  console.log("dice", stringSimilarity.compareTwoStrings(str1, str2));
-};
-
-stringMatch(str1, str2);
+SearchSimilarSentences("./file/output/QA.json", 0.4);

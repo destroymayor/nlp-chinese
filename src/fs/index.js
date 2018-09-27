@@ -15,4 +15,22 @@ const readFileAsync = path => {
   });
 };
 
-export { readFileAsync, fs_writeFileSync, fs_appendFileSync };
+const exportResult = (parsedResult, coverFile) => {
+  readFileAsync(coverFile)
+    .then(data => {
+      const jsonData = JSON.parse(data);
+
+      parsedResult.map(item => {
+        jsonData.push(item);
+      });
+
+      fs_writeFileSync(coverFile, JSON.stringify(jsonData), err => {
+        if (err) console.log("write", err);
+      });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
+
+export { readFileAsync, fs_writeFileSync, fs_appendFileSync, exportResult };

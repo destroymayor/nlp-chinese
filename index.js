@@ -7,7 +7,7 @@ nodejieba.load({
   // userDict: "./jieba/userdict.utf8"
 });
 
-import { readFileAsync, fs_appendFileSync, fs_writeFileSync } from "./src/fs";
+import { readFileAsync, fs_appendFileSync, fs_writeFileSync, exportResult } from "./src/fs";
 import { replaceCumulative } from "./src/ArrayProcess.js";
 
 //dice
@@ -20,74 +20,85 @@ import wuzzy from "wuzzy";
 const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, output, GenerationsNumber) => {
   //產生句數量計數
   let num = 0;
-  const outputList = [];
-  readFileAsync(ReplacedSentenceFile).then(BeingReplaceData => {
-    readFileAsync(CombinedWordFile).then(BecomeData => {
-      Object.values(JSON.parse(BeingReplaceData)).map(BlackSentenceItem => {
-        BlackSentenceItem.map(item => {
-          const BeingReplaceListTagNoun = [];
-          const BeingReplaceListTagVerb = [];
+  readFileAsync(ReplacedSentenceFile)
+    .then(BeingReplaceData => {
+      readFileAsync(CombinedWordFile)
+        .then(BecomeData => {
+          Object.values(JSON.parse(BeingReplaceData)).map(BlackSentenceItem => {
+            BlackSentenceItem.map(item => {
+              const BeingReplaceListTagNoun = [];
+              const BeingReplaceListTagVerb = [];
 
-          // BlackCat Noun and Verb list
-          nodejieba.cut(item.article_title).map(CutValue => {
-            nodejieba.tag(CutValue).map(CutTagValue => {
-              //Noun and word length > 1
-              if (CutTagValue.tag === "n" && CutTagValue.word.length > 1) {
-                BeingReplaceListTagNoun.push(CutTagValue.word);
-              }
-              // //Verb and word length > 1
-              if (CutTagValue.tag === "v" && CutTagValue.word.length > 1) {
-                BeingReplaceListTagVerb.push(CutTagValue.word);
-              }
+              // BlackCat Noun and Verb list
+              nodejieba.cut(item.article_title).map(CutValue => {
+                nodejieba.tag(CutValue).map(CutTagValue => {
+                  //Noun and word length > 1
+                  if (CutTagValue.tag === "n" && CutTagValue.word.length > 1) {
+                    BeingReplaceListTagNoun.push(CutTagValue.word);
+                  }
+                  // //Verb and word length > 1
+                  if (CutTagValue.tag === "v" && CutTagValue.word.length > 1) {
+                    BeingReplaceListTagVerb.push(CutTagValue.word);
+                  }
+                });
+              });
+
+              Object.values(JSON.parse(BecomeData)).map(BecomeDataItem => {
+                BecomeDataItem.item.map(BecomeDataItemValue => {
+                  if (BecomeDataItemValue.hasOwnProperty("v")) {
+                    if (
+                      BeingReplaceListTagNoun.length === BecomeDataItemValue.n.length &&
+                      BeingReplaceListTagVerb.length === BecomeDataItemValue.v.length
+                    ) {
+                      //組合替換名詞
+                      const ResultSentenceNoun = replaceCumulative(
+                        item.article_title,
+                        BeingReplaceListTagNoun,
+                        BecomeDataItemValue.n
+                      );
+
+                      //組合替換動詞
+                      const ResultSentenceVerb = replaceCumulative(
+                        ResultSentenceNoun,
+                        BeingReplaceListTagVerb,
+                        BecomeDataItemValue.v
+                      );
+
+                      const OutputResult =
+                        "N:" +
+                        item.article_title +
+                        ", Q: " +
+                        ResultSentenceVerb +
+                        ", A: " +
+                        BecomeDataItemValue.sourceText +
+                        "\n";
+
+                      const OutputResultJSON =
+                        '{"question":"' + ResultSentenceVerb + '","answer":"' + BecomeDataItemValue.sourceText + '"},\n';
+                      fs_appendFileSync(output, OutputResultJSON, err => {
+                        if (err) console.log("write", err);
+                      });
+
+                      //控制產生數量
+                      num++;
+                      if (num == GenerationsNumber) {
+                        process.exit(0);
+                        console.log("Done");
+                      }
+                    }
+                  }
+                });
+              });
             });
           });
-
-          Object.values(JSON.parse(BecomeData)).map(BecomeDataItem => {
-            BecomeDataItem.item.map(BecomeDataItemValue => {
-              if (BecomeDataItemValue.hasOwnProperty("v")) {
-                if (
-                  BeingReplaceListTagNoun.length === BecomeDataItemValue.n.length &&
-                  BeingReplaceListTagVerb.length === BecomeDataItemValue.v.length
-                ) {
-                  //組合替換名詞
-                  const ResultSentenceNoun = replaceCumulative(
-                    item.article_title,
-                    BeingReplaceListTagNoun,
-                    BecomeDataItemValue.n
-                  );
-
-                  //組合替換動詞
-                  const ResultSentenceVerb = replaceCumulative(
-                    ResultSentenceNoun,
-                    BeingReplaceListTagVerb,
-                    BecomeDataItemValue.v
-                  );
-
-                  // const OutputResult =
-                  //   "N:" + item.article_title + ", Q: " + ResultSentenceVerb + ", A: " + BecomeDataItemValue.sourceText + "\n";
-                  // fs_appendFileSync(output, OutputResult, err => {
-                  //   if (err) console.log("write", err);
-                  // });
-
-                  outputList.push({
-                    question: ResultSentenceVerb,
-                    answer: BecomeDataItemValue.sourceText
-                  });
-
-                  fs_writeFileSync(output, JSON.stringify(outputList), err => {
-                    if (err) console.log("write", err);
-                  });
-                  //控制產生數量
-                  num++;
-                  if (num == GenerationsNumber) process.exit(0);
-                }
-              }
-            });
-          });
+        })
+        .catch(err => {
+          console.log("BecomeData", err);
         });
-      });
+    })
+    .catch(err => {
+      console.log("BeingReplaceData", err);
     });
-  });
 };
 
 // 收斂 尋找QA最佳對
@@ -117,8 +128,8 @@ const SearchSimilarSentences = (GenerateSentenceFile, Threshold) => {
 // KeywordCombinationReplaceAll(
 //   "./file/phone/phone.json",
 //   "./file/Samsung/Samsung_Combination.json",
-//   "./file/output/QA.json",
-//   10000
+//   "./file/output/QA.txt",
+//   300000
 // );
 
-SearchSimilarSentences("./file/output/QA.json", 0.4);
+SearchSimilarSentences("./file/output/QA.json", 0.8);

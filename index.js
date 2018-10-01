@@ -7,29 +7,40 @@ nodejieba.load({
   // userDict: "./jieba/userdict.utf8"
 });
 
-import { readFileAsync, fs_appendFileSync, fs_writeFileSync, exportResult } from "./src/fs";
-import { replaceCumulative } from "./src/ArrayProcess.js";
+import {
+  readFileAsync,
+  fs_appendFileSync,
+  fs_writeFileSync,
+  exportResult
+} from "./src/fs";
+import {
+  replaceCumulative
+} from "./src/ArrayProcess.js";
 
 //dice
 import stringSimilarity from "string-similarity";
 //levenshtein
-import { similarity } from "./src/Calculation";
+import {
+  similarity
+} from "./src/Calculation";
 import wuzzy from "wuzzy";
 
 //詞組合句子生成
 const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, output, GenerationsNumber) => {
   //產生句數量計數
-  let num = 0;
+  //let num = 0;
+  const InterrogativeSentenceRegexPattern = "\\?|？|為什麼|嗎|如何|如果|若要|是否|請將|可能|多少"; //疑問句pattern
   readFileAsync(ReplacedSentenceFile)
     .then(BeingReplaceData => {
       readFileAsync(CombinedWordFile)
         .then(BecomeData => {
-          Object.values(JSON.parse(BeingReplaceData)).map(BlackSentenceItem => {
-            BlackSentenceItem.map(item => {
+          JSON.parse(BeingReplaceData).map(item => {
+            // 只取疑問句
+            if (item.article_title.match(new RegExp(InterrogativeSentenceRegexPattern, "g"))) {
               const BeingReplaceListTagNoun = [];
               const BeingReplaceListTagVerb = [];
 
-              // BlackCat Noun and Verb list
+              // BeingReplaceData Noun and Verb list
               nodejieba.cut(item.article_title).map(CutValue => {
                 nodejieba.tag(CutValue).map(CutTagValue => {
                   //Noun and word length > 1
@@ -80,16 +91,16 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
                       });
 
                       //控制產生數量
-                      num++;
-                      if (num == GenerationsNumber) {
-                        process.exit(0);
-                        console.log("Done");
-                      }
+                      // num++;
+                      // if (num == GenerationsNumber) {
+                      //   process.exit(0);
+                      //   console.log("Done");
+                      // }
                     }
                   }
                 });
               });
-            });
+            }
           });
         })
         .catch(err => {
@@ -103,22 +114,34 @@ const KeywordCombinationReplaceAll = (ReplacedSentenceFile, CombinedWordFile, ou
 
 // 收斂 尋找QA最佳對
 const SearchSimilarSentences = (GenerateSentenceFile, Threshold) => {
+  //過濾特殊符號
+  const SpecialSymbolCode = "[?!，,。`-~～!@#$^&*()=|{}'：；:;'\\[\\].<>/?~！@#￥……&*（）——|{}《》【】．、‘”“'%+_-]";
+
   readFileAsync(GenerateSentenceFile).then(GenerateSentenceData => {
     JSON.parse(GenerateSentenceData).map(SentenceValue => {
-      const Q = SentenceValue.question;
-      const A = SentenceValue.answer;
+      const Q = SentenceValue.question.replace(new RegExp(SpecialSymbolCode, "g"), "");
+      const A = SentenceValue.answer.replace(new RegExp(SpecialSymbolCode, "g"), "");
       //dice
       if (stringSimilarity.compareTwoStrings(Q, A) > Threshold) {
-        console.log("dice", stringSimilarity.compareTwoStrings(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+        // console.log("dice", stringSimilarity.compareTwoStrings(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+        // fs_appendFileSync(
+        //   "./file/output/QA_dice.txt",
+        //   stringSimilarity.compareTwoStrings(Q, A).toFixed(3) + " Q=> " + Q + " A=>" + A + "\n"
+        // );
       }
 
       //jaccard
       if (wuzzy.jaccard(Q, A) > Threshold) {
-        console.log("jaccard", wuzzy.jaccard(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+        //fs_appendFileSync("./file/output/QA_jaccard.txt", wuzzy.jaccard(Q, A).toFixed(3) + " Q=> " + Q + " A=>" + A + "\n");
+        //console.log("jaccard", wuzzy.jaccard(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
       }
 
       // levenshtein
       if (wuzzy.levenshtein(Q, A) >= Threshold) {
+        // fs_appendFileSync(
+        //   "./file/output/QA_levenshtein.txt",
+        //   wuzzy.levenshtein(Q, A).toFixed(3) + " Q=> " + Q + " A=>" + A + "\n"
+        // );
         console.log("levenshtein ", wuzzy.levenshtein(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
       }
     });
@@ -126,10 +149,9 @@ const SearchSimilarSentences = (GenerateSentenceFile, Threshold) => {
 };
 
 // KeywordCombinationReplaceAll(
-//   "./file/phone/phone.json",
+//   "./file/phone/Phone_raw.json",
 //   "./file/Samsung/Samsung_Combination.json",
-//   "./file/output/QA.txt",
-//   300000
+//   "./file/output/QA.txt"
 // );
 
-SearchSimilarSentences("./file/output/QA.json", 0.8);
+//SearchSimilarSentences("./file/output/QA.json", 0.5);

@@ -30,10 +30,8 @@ const writeAsyncFile = (output, result) => {
     const combinationsReplaceList = {
       articles: result
     };
-    fs_writeFile(output, JSON.stringify(combinationsReplaceList), err => {
-      if (err) console.log("write", err);
-
-      resolve(data);
+    fs_writeFile(output, JSON.stringify(result), err => {
+      if (err) reject(err);
     });
   });
 };
@@ -63,52 +61,46 @@ const TrainDataProcess = (input, output) => {
           // .replace(new RegExp(NumberCode, "g"), "Number") //將數字以特定文字代替
           .replace(/  +/g, ""); //去多餘空白
 
-        const content = item.content
-          .replace(new RegExp(SpecialSymbolCode, "g"), "") //特殊符號取代
-          // .replace(new RegExp(NumberCode, "g"), "Number") //將數字以特定文字代替
-          .replace(/  +/g, ""); // 去多餘空白
+        // const content = item.content
+        //   .replace(new RegExp(SpecialSymbolCode, "g"), "") //特殊符號取代
+        //   // .replace(new RegExp(NumberCode, "g"), "Number") //將數字以特定文字代替
+        //   .replace(/  +/g, ""); // 去多餘空白
 
-        const reply = [];
-        item.messages.map(item => {
-          const replyItem = item
-            .replace(new RegExp(SpecialSymbolCode, "g"), "") //特殊符號取代
-            //  .replace(new RegExp(NumberCode, "g"), "Number")
-            .replace(new RegExp(EmojiCode, "g"), "") //將數字以特定文字代替
-            .replace(/  +/g, ""); // 去多餘空白
-          reply.push(replyItem);
-        });
+        // const reply = [];
+        // item.messages.map(item => {
+        //   const replyItem = item
+        //     .replace(new RegExp(SpecialSymbolCode, "g"), "") //特殊符號取代
+        //     //  .replace(new RegExp(NumberCode, "g"), "Number")
+        //     .replace(new RegExp(EmojiCode, "g"), "") //將數字以特定文字代替
+        //     .replace(/  +/g, ""); // 去多餘空白
+        //   reply.push(replyItem);
+        // });
 
         if (item.article_title.match(new RegExp(InterrogativeSentenceRegexPattern, "g"))) {
           const CutTitle = nodejieba.cut(title, true).join(" ");
-          splitMulti(CutTitle, [",", "，", "。", "？", "?"]).map(value => {
-            const result = value.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
-            if (result.length >= 5 && result.length <= 100) {
-              outputJSON.push({
-                article_title: result
-              });
-
-              //writeAsyncFile(output, result);
-            }
+          const result = CutTitle.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
+          outputJSON.push({
+            article_title: title
           });
 
-          const CutContent = nodejieba.cut(content, true).join(" ");
-          splitMulti(CutContent, [",", "，", "。", "？", "?"]).map(value => {
-            const result = value.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
-            if (result.length >= 10 && result.length <= 100) {
-              // writeAsyncFile(output, result);
-            }
-          });
+          // const CutContent = nodejieba.cut(content, true).join(" ");
+          // splitMulti(CutContent, [",", "，", "。", "？", "?"]).map(value => {
+          //   const result = value.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
+          //   if (result.length >= 10 && result.length <= 100) {
+          //     // writeAsyncFile(output, result);
+          //   }
+          // });
 
-          const CutReply = nodejieba.cut(reply, true).join(" ");
-          splitMulti(CutReply, [",", "，", "。", "？", "?"]).map(value => {
-            const result = value.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
-            if (result.length >= 10 && result.length <= 100) {
-              //writeAsyncFile(output, result);
-            }
-          });
+          // const CutReply = nodejieba.cut(reply, true).join(" ");
+          // splitMulti(CutReply, [",", "，", "。", "？", "?"]).map(value => {
+          //   const result = value.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
+          //   if (result.length >= 10 && result.length <= 100) {
+          //     //writeAsyncFile(output, result);
+          //   }
+          // });
         }
       });
-
+      console.log(outputJSON.length);
       writeAsyncFile(output, outputJSON);
     })
     .catch(err => {
@@ -116,4 +108,4 @@ const TrainDataProcess = (input, output) => {
     });
 };
 
-TrainDataProcess("./file/phone/Phone.json", "./file/output/phone.json");
+TrainDataProcess("./file/phone/Phone_raw.json", "./file/phone/phone.json");

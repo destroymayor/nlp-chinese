@@ -50,4 +50,9 @@ const DeduplicationMergedObject2 = array => {
   });
 };
 
-export { replaceBulk, replaceCumulative, removeDuplicates, DeduplicationMergedObject2 };
+export {
+  replaceBulk,
+  replaceCumulative,
+  removeDuplicates,
+  DeduplicationMergedObject2
+};

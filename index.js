@@ -75,7 +75,13 @@ const KeywordCombinationReplaceAll = async (ReplacedSentenceFile, CombinedWordFi
             const ResultSentenceVerb = replaceCumulative(ResultSentenceNoun, BeingReplaceListTagVerb, BecomeDataItemValue.v);
 
             const OutputResultJSON =
-              '{"question":"' + ResultSentenceVerb + '","answer":"' + BecomeDataItemValue.sourceText + '"},\n';
+              '{"sourceText":"' +
+              sentence +
+              '","question":"' +
+              ResultSentenceVerb +
+              '","answer":"' +
+              BecomeDataItemValue.sourceText +
+              '"},\n';
             fs_appendFileSync(output, OutputResultJSON, err => {
               if (err) console.log("write", err);
             });
@@ -98,45 +104,60 @@ const SearchSimilarSentences = async (GenerateSentenceFile, Threshold) => {
   const GenerateSentenceData = await readFileAsync(GenerateSentenceFile);
 
   JSON.parse(GenerateSentenceData).map(SentenceValue => {
+    const sourceText = SentenceValue.sourceText.replace(new RegExp(SpecialSymbolCode, "g"), "");
     const Q = SentenceValue.question.replace(new RegExp(SpecialSymbolCode, "g"), "");
     const A = SentenceValue.answer.replace(new RegExp(SpecialSymbolCode, "g"), "");
     //dice
-    // if (stringSimilarity.compareTwoStrings(Q, A) > Threshold) {
-    //   //console.log("dice", stringSimilarity.compareTwoStrings(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
-    //   fs_appendFileSync(
-    //     "./file/output/QA_dice.txt",
-    //     stringSimilarity.compareTwoStrings(Q, A).toFixed(3) + " Q=> " + Q + " A=>" + A + "\n"
-    //   );
-    // }
+    if (stringSimilarity.compareTwoStrings(Q, A) > Threshold) {
+      //console.log("dice", stringSimilarity.compareTwoStrings(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+      // fs_appendFileSync(
+      //   "./file/output/QA_dice.txt",
+      //   "相似度:" +
+      //     stringSimilarity.compareTwoStrings(Q, A).toFixed(3) +
+      //     " , N:" +
+      //     sourceText +
+      //     " , Q: " +
+      //     Q +
+      //     " , A: " +
+      //     A +
+      //     "\n"
+      // );
+    }
 
     // //jaccard
-    // if (wuzzy.jaccard(Q, A) > Threshold) {
-    //   fs_appendFileSync("./file/output/QA_jaccard.txt", wuzzy.jaccard(Q, A).toFixed(3) + " Q=> " + Q + " A=>" + A + "\n");
-    //   //console.log("jaccard", wuzzy.jaccard(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
-    // }
+    if (wuzzy.jaccard(Q, A) > Threshold) {
+      // fs_appendFileSync(
+      //   "./file/output/QA_jaccard.txt",
+      //   "相似度:" + wuzzy.jaccard(Q, A).toFixed(3) + " , N:" + sourceText + " , Q: " + Q + " , A: " + A + "\n"
+      // );
+      //console.log("jaccard", wuzzy.jaccard(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+    }
 
     // // levenshtein
-    // if (wuzzy.levenshtein(Q, A) >= Threshold) {
-    //   fs_appendFileSync("./file/output/QA_levenshtein.txt", wuzzy.levenshtein(Q, A).toFixed(3) + " Q=> " + Q + " A=>" + A + "\n");
-    //   // console.log("levenshtein ", wuzzy.levenshtein(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
-    // }
+    if (wuzzy.levenshtein(Q, A) >= Threshold) {
+      // fs_appendFileSync(
+      //   "./file/output/QA_levenshtein.txt",
+      //   "相似度:" + wuzzy.levenshtein(Q, A).toFixed(3) + " , N:" + sourceText + " , Q: " + Q + " , A: " + A + "\n"
+      // );
+      // console.log("levenshtein ", wuzzy.levenshtein(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+    }
 
     // jarowinkler
     if (wuzzy.jarowinkler(Q, A) >= Threshold) {
       fs_appendFileSync(
-        "./file/output/QA_jarowinkler1.txt",
-        wuzzy.jarowinkler(Q, A).toFixed(3) + " Q=> " + Q + " A=>" + A + "\n"
+        "./file/output/QA_jarowinkler.txt",
+        "相似度:" + wuzzy.jarowinkler(Q, A).toFixed(3) + ", N:" + sourceText + " , Q: " + Q + " , A: " + A + "\n"
       );
-      console.log("jarowinkler ", wuzzy.jarowinkler(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
+      //console.log("jarowinkler ", wuzzy.jarowinkler(Q, A).toFixed(3), "Q=> ", Q, "A=> ", A);
     }
   });
 };
 
 // KeywordCombinationReplaceAll(
-//   "./file/phone/Phone_1.json",
+//   "./file/phone/Phone_2.json",
 //   "./file/Samsung/Samsung_Combination.json",
 //   "./file/output/QA.txt",
 //   300000
 // );
 
-SearchSimilarSentences("./file/output/QA.json", 0.4);
+SearchSimilarSentences("./file/output/QA.json", 0.6);

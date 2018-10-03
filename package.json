@@ -8,7 +8,8 @@
     "dev": "nodemon --watch src --exec babel-watch ./index.js",
     "app": "nodemon --watch src --exec babel-watch ./src/dataPretreatment/AnswerPretreatment.js",
     "trainData": "nodemon --watch src --exec babel-watch ./src/dataPretreatment/trainDataProcess.js",
-    "postinstall": "node-prune"
+    "postinstall": "node-prune",
+    "push": "git add . && git ci -m . && git push -u origin master"
   },
   "author": "",
   "license": "ISC",

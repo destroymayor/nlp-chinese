@@ -7,7 +7,7 @@ const fs_writeFile = util.promisify(fs.writeFileSync);
 nodejieba.load({
   dict: "./jieba/dict.txt",
   stopWordDict: "./jieba/stop_words.utf8",
-  userDict: "./jieba/userdict.utf8",
+  userDict: "./jieba/userdict.utf8"
 });
 
 // read file async
@@ -39,8 +39,6 @@ const splitMulti = (str, tokens) => {
 };
 
 const replaceRegex = text => {
-  //將數字以特定文字代替
-  const NumberCode = "\\d+";
   //去除特殊符號
   const SpecialSymbolCode =
     "[`-~～!@#$^&*()=－|「」{}╮╯╰╭\"'\\・：；:;'\\[\\].<>/?~！@#￥……﹏&*（）——|{}『』《》【】✪Ψ．、‘”“'%+_-ʎǝɹſʎɯǝ]";
@@ -50,14 +48,21 @@ const replaceRegex = text => {
   return text
     .replace(new RegExp(SpecialSymbolCode, "g"), "")
     .replace(new RegExp(EmojiCode, "g"), "")
-    //.replace(new RegExp(NumberCode, "g"), "Number")
     .replace(/  +/g, ""); //去多餘空白
+};
+
+const RegexSpaceAndNumber = text => {
+  //將數字以特定文字代替
+  const NumberCode = "\\d+";
+  return text
+    .replace(/\s\s+/g, " ")
+    .replace(/^ /g, "") //去空白跟起頭空白
+    .replace(new RegExp(NumberCode, "g"), "Number");
 };
 
 const TrainDataProcess = async (input, output) => {
   const TrainData = await readFileAsync(input);
   Object.values(JSON.parse(TrainData)).map(item => {
-
     const title = replaceRegex(item.article_title);
     const content = replaceRegex(item.content);
     const messages = [];
@@ -68,7 +73,7 @@ const TrainDataProcess = async (input, output) => {
 
     const CutTitle = nodejieba.cut(title, true).join(" ");
     splitMulti(CutTitle, [",", "，", "。", "？", "?"]).map(sentence => {
-      const result = sentence.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
+      const result = RegexSpaceAndNumber(sentence);
       if (result.length >= 10 && result.length <= 100) {
         writeAsyncFile(output, result);
       }
@@ -76,7 +81,7 @@ const TrainDataProcess = async (input, output) => {
 
     const CutContent = nodejieba.cut(content, true).join(" ");
     splitMulti(CutContent, [",", "，", "。", "？", "?"]).map(sentence => {
-      const result = sentence.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
+      const result = RegexSpaceAndNumber(sentence);
       if (result.length >= 10 && result.length <= 100) {
         writeAsyncFile(output, result);
       }
@@ -84,7 +89,7 @@ const TrainDataProcess = async (input, output) => {
 
     const CutMessages = nodejieba.cut(messages, true).join(" ");
     splitMulti(CutMessages, [",", "，", "。", "？", "?"]).map(sentence => {
-      const result = sentence.replace(/\s\s+/g, " ").replace(/^ /g, ""); //去空白跟起頭空白
+      const result = RegexSpaceAndNumber(sentence);
       if (result.length >= 10 && result.length <= 100) {
         writeAsyncFile(output, result);
       }
@@ -92,6 +97,4 @@ const TrainDataProcess = async (input, output) => {
   });
 };
 
-TrainDataProcess("./file/phone/Phone_1.json", "./file/output/train.txt");
-
-console.log(replaceRegex('透過三星的 高科技與123， 923283標準本'));
+TrainDataProcess("./file/phone/Phone_2.json", "./file/output/train.txt");

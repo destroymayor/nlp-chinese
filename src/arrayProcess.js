@@ -13,8 +13,11 @@ const replaceBulk = (str, findArray, replaceArray) => {
   return str;
 };
 
-const replaceCumulative = (Sentence, FindList, ReplaceList) => {
-  for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "(" + ReplaceList[i] + ")");
+const replaceCumulative = (Sentence, FindList, ReplaceList, word) => {
+  if (word == 'n')
+    for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "(" + ReplaceList[i] + ")");
+  if (word == 'v')
+    for (let i = 0; i < FindList.length; i++) Sentence = Sentence.replace(new RegExp(FindList[i]), "[" + ReplaceList[i] + "]");
   return Sentence;
 };
 

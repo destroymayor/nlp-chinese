@@ -25,7 +25,7 @@ const exportResult = async (parsedResult, coverFile) => {
     jsonData.push(item);
   });
 
-  fs_writeFileSync(coverFile, JSON.stringify(jsonData), err => {
+  fs_writeFileSync(coverFile, JSON.stringify(jsonData, null, 2), err => {
     if (err) console.log("write", err);
   });
 };

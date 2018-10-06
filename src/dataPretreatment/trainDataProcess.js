@@ -41,14 +41,17 @@ const splitMulti = (str, tokens) => {
 const replaceRegex = text => {
   //去除特殊符號
   const SpecialSymbolCode =
-    "[`-~～!@#$^&*()=－|「」{}╮╯╰╭\"'\\・：；:;'\\[\\].<>/?~！@#￥……﹏&*（）——|{}『』《》【】✪Ψ．、‘”“'%+_-ʎǝɹſʎɯǝ]";
+    "[◢◤▏│█┌─┐└┬┘●■␂`-~～!@#$^&*()=－|「」{}╮╯╰╭\"'・：；:;'[\\].<>/?~！@#￥……﹏&*（）——|{}『』《》【】✪Ψ．、‘”“'%+_-ʎǝɹſʎɯǝ]";
   //去表情符號
   const EmojiCode = "([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2694-\u2697]|\uD83E[\uDD10-\uDD5D])";
+  if (text != null) {
+    return text
+      .replace(new RegExp(SpecialSymbolCode, "g"), "")
+      .replace(new RegExp(EmojiCode, "g"), "")
+      .replace(/  +/g, ""); //去多餘空白
+  }
 
-  return text
-    .replace(new RegExp(SpecialSymbolCode, "g"), "")
-    .replace(new RegExp(EmojiCode, "g"), "")
-    .replace(/  +/g, ""); //去多餘空白
+
 };
 
 const RegexSpaceAndNumber = text => {
@@ -62,7 +65,7 @@ const RegexSpaceAndNumber = text => {
 
 const TrainDataProcess = async (input, output) => {
   const TrainData = await readFileAsync(input);
-  Object.values(JSON.parse(TrainData)).map(item => {
+  Object.values(JSON.parse(TrainData).articles).map(item => {
     const title = replaceRegex(item.article_title);
     const content = replaceRegex(item.content);
     const messages = [];
@@ -97,4 +100,4 @@ const TrainDataProcess = async (input, output) => {
   });
 };
 
-TrainDataProcess("./file/phone/Phone_2.json", "./file/output/train.txt");
+TrainDataProcess("./file/phone/MobileComm-1-6509.json", "./file/output/train.txt");

@@ -4,19 +4,13 @@ nodejieba.load({
   stopWordDict: "./jieba/stop_words.utf8"
 });
 
-import {
-  promisify
-} from "util";
-import fs from 'fs'
+import { promisify } from "util";
+import fs from "fs";
 const fs_writeFileSync = promisify(fs.writeFileSync);
 
-import {
-  readFileAsync
-} from '../fsAsync'
+import { readFileAsync } from "../fsAsync";
 
-import {
-  combinations
-} from "simple-statistics";
+import { combinations } from "simple-statistics";
 
 const Process = async (sourceText, output) => {
   const sourceTextData = await readFileAsync(sourceText);

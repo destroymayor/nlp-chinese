@@ -86,7 +86,6 @@ const KeywordCombinationReplaceAll = async (ReplacedSentenceFile, CombinedWordFi
                 "v"
               );
 
-
               // const OutputResultJSON =
               //   '{"sourceText":"' +
               //   sentence +
@@ -127,52 +126,48 @@ const SearchSimilarSentences = async (GenerateSentenceFile, Threshold, Threshold
           sourceText +
           '","Q":"' +
           Q +
-          '","A":"' + A + '"},\n';
+          '","A":"' +
+          A +
+          '"},\n';
         //fs_appendFileSync('./file/output/QA_dice.json', output);
-        fs_appendFileSync('./file/output/QA_dice.txt', stringSimilarity.compareTwoStrings(Q, A).toFixed(3) + " , " + sourceText + " , " + Q + " , " + A + "\n")
+        fs_appendFileSync(
+          "./file/output/QA_dice.txt",
+          stringSimilarity.compareTwoStrings(Q, A).toFixed(3) + " , " + sourceText + " , " + Q + " , " + A + "\n"
+        );
       }
 
       // //jaccard 0.3 0.4
       if (wuzzy.jaccard(Q, A) >= 0.3 && wuzzy.jaccard(Q, A) <= 0.4) {
         const output =
-          '{"sim":"' +
-          wuzzy.jaccard(Q, A).toFixed(3) +
-          '","N":"' +
-          sourceText +
-          '","Q":"' +
-          Q +
-          '","A":"' + A + '"},\n';
+          '{"sim":"' + wuzzy.jaccard(Q, A).toFixed(3) + '","N":"' + sourceText + '","Q":"' + Q + '","A":"' + A + '"},\n';
         //fs_appendFileSync('./file/output/QA_jaccard.json', output);
-        fs_appendFileSync('./file/output/QA_jaccard.txt', wuzzy.jaccard(Q, A).toFixed(3) + " , " + sourceText + " , " + Q + " , " + A + "\n")
+        fs_appendFileSync(
+          "./file/output/QA_jaccard.txt",
+          wuzzy.jaccard(Q, A).toFixed(3) + " , " + sourceText + " , " + Q + " , " + A + "\n"
+        );
       }
 
       // // levenshtein 0.4 0.5
       if (wuzzy.levenshtein(Q, A) >= 0.4 && wuzzy.levenshtein(Q, A) <= 0.5) {
         const output =
-          '{"sim":"' +
-          wuzzy.levenshtein(Q, A).toFixed(3) +
-          '","N":"' +
-          sourceText +
-          '","Q":"' +
-          Q +
-          '","A":"' + A + '"},\n';
+          '{"sim":"' + wuzzy.levenshtein(Q, A).toFixed(3) + '","N":"' + sourceText + '","Q":"' + Q + '","A":"' + A + '"},\n';
         //fs_appendFileSync('./file/output/QA_levenshtein.json', output);
-        fs_appendFileSync('./file/output/QA_levenshtein.txt', wuzzy.levenshtein(Q, A).toFixed(3) + " , " + sourceText + " , " + Q + " , " + A + "\n")
+        fs_appendFileSync(
+          "./file/output/QA_levenshtein.txt",
+          wuzzy.levenshtein(Q, A).toFixed(3) + " , " + sourceText + " , " + Q + " , " + A + "\n"
+        );
       }
 
       // jarowinkler 0.6 0.7
       const JarowinklerList = [];
       if (wuzzy.jarowinkler(Q, A) >= 0.6 && wuzzy.jarowinkler(Q, A) <= 0.7) {
         const output =
-          '{"sim":"' +
-          wuzzy.jarowinkler(Q, A).toFixed(3) +
-          '","N":"' +
-          sourceText +
-          '","Q":"' +
-          Q +
-          '","A":"' + A + '"},\n';
+          '{"sim":"' + wuzzy.jarowinkler(Q, A).toFixed(3) + '","N":"' + sourceText + '","Q":"' + Q + '","A":"' + A + '"},\n';
         //fs_appendFileSync('./file/output/QA_jarowinkler.json', output);
-        fs_appendFileSync('./file/output/QA_jarowinkler.txt', wuzzy.jarowinkler(Q, A).toFixed(3) + " , " + sourceText + " , " + Q + " , " + A + "\n")
+        fs_appendFileSync(
+          "./file/output/QA_jarowinkler.txt",
+          wuzzy.jarowinkler(Q, A).toFixed(3) + " , " + sourceText + " , " + Q + " , " + A + "\n"
+        );
       }
     }
   });
@@ -185,22 +180,21 @@ const SearchSimilarSentences = async (GenerateSentenceFile, Threshold, Threshold
 //   100
 // );
 
-SearchSimilarSentences("./file/output/QA.json", 0.3, 0.4);
+//SearchSimilarSentences("./file/output/QA.json", 0.3, 0.4);
 
 const QAMatchVote = async () => {
-  const diceData = await readFileAsync('./file/output/QA_dice.json');
-  const jaccardData = await readFileAsync('./file/output/QA_jaccard.json');
-  const levenshteinData = await readFileAsync('./file/output/QA_levenshtein.json');
-  const jarowinklerData = await readFileAsync('./file/output/QA_jarowinkler.json');
+  const diceData = await readFileAsync("./file/output/QA_dice.json");
+  const jaccardData = await readFileAsync("./file/output/QA_jaccard.json");
+  const levenshteinData = await readFileAsync("./file/output/QA_levenshtein.json");
+  const jarowinklerData = await readFileAsync("./file/output/QA_jarowinkler.json");
 
   JSON.parse(levenshteinData).map(Data => {
     if (wuzzy.jarowinkler(Data.Q, Data.A) >= 0.6) {
-      console.log(wuzzy.jarowinkler(Data.Q, Data.A).toFixed(3), 'Q:', Data.Q, ' A:', Data.A)
-      const output = wuzzy.jarowinkler(Data.Q, Data.A).toFixed(3) +
-        ' , ' + Data.N + ' , ' + Data.Q + ' , ' + Data.A + '\n';
-      fs_appendFileSync('./file/output/QA_bestMatch.txt', output);
+      console.log(wuzzy.jarowinkler(Data.Q, Data.A).toFixed(3), "Q:", Data.Q, " A:", Data.A);
+      const output = wuzzy.jarowinkler(Data.Q, Data.A).toFixed(3) + " , " + Data.N + " , " + Data.Q + " , " + Data.A + "\n";
+      fs_appendFileSync("./file/output/QA_bestMatch.txt", output);
     }
-  })
-}
+  });
+};
 
 //QAMatchVote();

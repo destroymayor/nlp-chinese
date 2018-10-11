@@ -7,17 +7,10 @@ nodejieba.load({
   userDict: "./jieba/userdict.utf8"
 });
 
-import {
-  readFileAsync,
-  fs_appendFileSync,
-  fs_writeFileSync,
-  exportResult
-} from "./src/fsAsync";
+import { readFileAsync, fs_appendFileSync, fs_writeFileSync, exportResult } from "./src/fsAsync";
 
 import stringSimilarity from "string-similarity"; //dice
-import {
-  similarity
-} from "./src/Calculation"; //levenshtein
+import { similarity } from "./src/Calculation"; //levenshtein
 
 import wuzzy from "wuzzy";
 
@@ -50,7 +43,7 @@ const KeywordCombinationReplaceAll = async (ReplacedSentenceFile, CombinedWordFi
     const BeingReplaceListTagVerb = [];
     if (item.article_title.match(new RegExp(InterrogativeSentenceRegexPattern, "g"))) {
       // 只取疑問句
-
+      console.log(item.article_title);
       const sentence = item.article_title.replace(new RegExp(SpecialSymbolCode, "g"), "");
       nodejieba.extract(sentence, 5).map(CutValue => {
         // BeingReplaceData Noun and Verb list
@@ -173,28 +166,11 @@ const SearchSimilarSentences = async (GenerateSentenceFile, Threshold, Threshold
   });
 };
 
-// KeywordCombinationReplaceAll(
-//   "./file/phone/Phone_1.json",
-//   "./file/Samsung/Samsung_Combination.json",
-//   "./file/output/QA.txt",
-//   100
-// );
+KeywordCombinationReplaceAll(
+  "./file/phone/Phone_1.json",
+  "./file/Samsung/Samsung_Combination.json",
+  "./file/output/QA.txt",
+  1000
+);
 
 //SearchSimilarSentences("./file/output/QA.json", 0.3, 0.4);
-
-const QAMatchVote = async () => {
-  const diceData = await readFileAsync("./file/output/QA_dice.json");
-  const jaccardData = await readFileAsync("./file/output/QA_jaccard.json");
-  const levenshteinData = await readFileAsync("./file/output/QA_levenshtein.json");
-  const jarowinklerData = await readFileAsync("./file/output/QA_jarowinkler.json");
-
-  JSON.parse(levenshteinData).map(Data => {
-    if (wuzzy.jarowinkler(Data.Q, Data.A) >= 0.6) {
-      console.log(wuzzy.jarowinkler(Data.Q, Data.A).toFixed(3), "Q:", Data.Q, " A:", Data.A);
-      const output = wuzzy.jarowinkler(Data.Q, Data.A).toFixed(3) + " , " + Data.N + " , " + Data.Q + " , " + Data.A + "\n";
-      fs_appendFileSync("./file/output/QA_bestMatch.txt", output);
-    }
-  });
-};
-
-//QAMatchVote();

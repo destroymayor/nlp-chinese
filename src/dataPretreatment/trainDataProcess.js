@@ -50,8 +50,6 @@ const replaceRegex = text => {
       .replace(new RegExp(EmojiCode, "g"), "")
       .replace(/  +/g, ""); //去多餘空白
   }
-
-
 };
 
 const RegexSpaceAndNumber = text => {
@@ -69,6 +67,7 @@ const TrainDataProcess = async (input, output) => {
     const title = replaceRegex(item.article_title);
     const content = replaceRegex(item.content);
     const messages = [];
+
     item.messages.map(item => {
       const replyItem = replaceRegex(item);
       messages.push(replyItem);
@@ -82,22 +81,36 @@ const TrainDataProcess = async (input, output) => {
       }
     });
 
-    const CutContent = nodejieba.cut(content, true).join(" ");
-    splitMulti(CutContent, [",", "，", "。", "？", "?"]).map(sentence => {
-      const result = RegexSpaceAndNumber(sentence);
-      if (result.length >= 10 && result.length <= 100) {
-        writeAsyncFile(output, result);
-      }
-    });
+    // const CutContent = nodejieba.cut(content, true).join(" ");
+    // splitMulti(CutContent, [",", "，", "。", "？", "?"]).map(sentence => {
+    //   const result = RegexSpaceAndNumber(sentence);
+    //   if (result.length >= 10 && result.length <= 100) {
+    //     writeAsyncFile(output, result);
+    //   }
+    // });
 
-    const CutMessages = nodejieba.cut(messages, true).join(" ");
-    splitMulti(CutMessages, [",", "，", "。", "？", "?"]).map(sentence => {
-      const result = RegexSpaceAndNumber(sentence);
-      if (result.length >= 10 && result.length <= 100) {
-        writeAsyncFile(output, result);
-      }
-    });
+    // const CutMessages = nodejieba.cut(messages, true).join(" ");
+    // splitMulti(CutMessages, [",", "，", "。", "？", "?"]).map(sentence => {
+    //   const result = RegexSpaceAndNumber(sentence);
+    //   if (result.length >= 10 && result.length <= 100) {
+    //     writeAsyncFile(output, result);
+    //   }
+    // });
   });
 };
 
-TrainDataProcess("./file/phone/MobileComm-1-6509.json", "./file/output/train.txt");
+//TrainDataProcess("./file/phone/MobileComm-1-6509.json", "./file/output/train.txt");
+
+const lineReader = require("readline").createInterface({
+  input: require("fs").createReadStream("./file/data.txt")
+});
+
+lineReader.on("line", function(line) {
+  const data = replaceRegex(line);
+  const CutTitle = nodejieba.cut(data, true).join(" ");
+  console.log(CutTitle);
+  splitMulti(CutTitle, [",", "，", "。", "？", "?"]).map(sentence => {
+    console.log(sentence);
+    writeAsyncFile("./file/train.txt", sentence);
+  });
+});

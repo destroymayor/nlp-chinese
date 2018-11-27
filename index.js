@@ -170,7 +170,7 @@ KeywordCombinationReplaceAll(
   "./file/phone/Phone_1.json",
   "./file/Samsung/Samsung_Combination.json",
   "./file/output/QA.txt",
-  1000
+  10000
 );
 
 //SearchSimilarSentences("./file/output/QA.json", 0.3, 0.4);
